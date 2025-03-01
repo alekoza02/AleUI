@@ -1,0 +1,8 @@
+TESTS
+
+__pycache__
+.obsidian
+.vscode
+
+profil*
+*.txt
