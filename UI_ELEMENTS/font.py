@@ -26,14 +26,14 @@ class Font:
         self.font_pixel_dim = self.font_pyg_r.size("a")
 
 
-    def scala_font(self, moltiplicatore):
+    def resize_font(self, new_size):
 
-        if moltiplicatore == -1:
+        if new_size != self.dim_font:
+            self.dim_font = new_size
+        elif new_size == -1:
             if self.dim_font != self.original:
                 self.dim_font = self.original
-        else:
-            self.dim_font *= moltiplicatore 
-    
+            
         if self.latex_font:    
             path_r = os.path.join('TEXTURES', 'century_r.TTF')
             path_b = os.path.join('TEXTURES', 'century_b.TTF')
