@@ -11,7 +11,7 @@ if DO_NOT_EXECUTE:
     import pygame
 
 class Label_text(BaseElementUI):
-    def __init__(self, x, y, w, h, origin=None, text="Prova\^{Passa}\_{\i{w\#dc143c{o}w}}\nCannot believe it!", use_latex_font=False, text_centered_x=True, text_centered_y=True, performant=False):
+    def __init__(self, x, y, w, h, origin=None, text="Prova\\^{Passa}\\_{\\i{w\\#dc143c{o}w}}\nCannot believe it!", use_latex_font=False, text_centered_x=True, text_centered_y=True, performant=False):
         super().__init__(x, y, w, h, origin, performant)
 
         # shape
