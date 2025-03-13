@@ -8,6 +8,7 @@ import numpy as np
 import ctypes
 
 from UI_ELEMENTS.shapes import RectAle, LineAle, CircleAle, SurfaceAle
+from UI_ELEMENTS.event_tracker import EventTracker
 
 DO_NOT_EXECUTE = False
 if DO_NOT_EXECUTE:
@@ -34,6 +35,7 @@ class App:
         # Init pygame
         pygame.init()
         self.clock = pygame.time.Clock()
+        self.event_tracker: EventTracker = EventTracker()
 
         # DPI aware (windows)
         ctypes.windll.user32.SetProcessDPIAware()
@@ -87,13 +89,25 @@ class App:
 
         for object in self.render_buffer:
             if type(object) == RectAle:
-                pygame.draw.rect(self.root_window, **object.get_attributes())  
+                if object.is_opengl:
+                    pygame.draw.rect(self.root_window, **object.get_mapped_attributes())  
+                else:
+                    pygame.draw.rect(self.root_window, **object.get_attributes())  
             elif type(object) == LineAle:
-                pygame.draw.line(self.root_window, **object.get_attributes())   
+                if object.is_opengl:
+                    pygame.draw.line(self.root_window, **object.get_mapped_attributes())   
+                else:
+                    pygame.draw.line(self.root_window, **object.get_attributes())   
             elif type(object) == CircleAle:
-                pygame.draw.circle(self.root_window, **object.get_attributes())
+                if object.is_opengl:
+                    pygame.draw.circle(self.root_window, **object.get_mapped_attributes())
+                else:
+                    pygame.draw.circle(self.root_window, **object.get_attributes())
             elif type(object) == SurfaceAle:
-                self.root_window.blit(**object.get_attributes())
+                if object.is_opengl:
+                    self.root_window.blit(**object.get_mapped_attributes())
+                else:
+                    self.root_window.blit(**object.get_attributes())
 
         self.render_buffer = []
 
@@ -102,6 +116,11 @@ class App:
         events = pygame.event.get()
 
         for event in events:
+
+            # Update singleton state
+            self.event_tracker.track_mouse_events(event)
+            self.event_tracker.track_keyboard_events(event)
+
             if event.type == pygame.QUIT:
                 self.close()
 
@@ -114,6 +133,9 @@ class App:
                 # if not self.fullscreen:
                 self.w, self.h = event.w, event.h
                 self.update_coords_UI_elements()
+
+        for index, item in self.UI.items():
+            item.handle_events(events)
 
 
     def toggle_fullscreen(self):

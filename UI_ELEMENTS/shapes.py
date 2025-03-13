@@ -1,13 +1,18 @@
 from UI_ELEMENTS.smart_coordinate import SmartCoordinate
 from pygame import Rect, Surface, SRCALPHA
+from MATH.utils import MateUtils
+import numpy as np
 
 class ComplexShape:
-    def __init__(self):
+    def __init__(self, is_opengl_object=False):
         self.shapes: dict[str, RectAle] = {}
+        self.map_values: bool = is_opengl_object
 
 
     def add_shape(self, key, shape):
         self.shapes[key] = shape
+        if self.map_values:
+            self.shapes[key].is_opengl = True
 
 
     def update_shapes(self, new_x, new_y, new_w, new_h):
@@ -26,10 +31,11 @@ class RectAle:
         self.y: SmartCoordinate = SmartCoordinate(y)
         self.w: SmartCoordinate = SmartCoordinate(w)
         self.h: SmartCoordinate = SmartCoordinate(h)
-        self.color = color
+        self.color = np.array(color)
         self.width = width
         self.border_radius = border_radius
         self.rect = Rect(0, 0, 0, 0)
+        self.is_opengl = False
 
 
     def update(self, x_container, y_container, w_container, h_container):
@@ -52,6 +58,15 @@ class RectAle:
             "border_radius" : self.border_radius
         }
     
+    
+    def get_mapped_attributes(self, viewport_size=(800, 600)):
+        return {
+            "color" : self.color,
+            "rect" : Rect(MateUtils.map_value_opengl(self.x, viewport_size[0], False), MateUtils.map_value_opengl(self.y, viewport_size[1], True), MateUtils.map_value_opengl(self.w, viewport_size[0], False), MateUtils.map_value_opengl(self.h, viewport_size[1], True)),
+            "width" : self.width,
+            "border_radius" : self.border_radius
+        }
+    
 
 
 class LineAle:
@@ -60,10 +75,11 @@ class LineAle:
         self.x_end: SmartCoordinate = SmartCoordinate(xe)
         self.y_start: SmartCoordinate = SmartCoordinate(ys)
         self.y_end: SmartCoordinate = SmartCoordinate(ye)
-        self.color = color
+        self.color = np.array(color)
         self.width = width
         self.start_pos = (0, 0)
         self.end_pos = (0, 0)
+        self.is_opengl = False
 
 
     def update(self, x_container, y_container, w_container, h_container):
@@ -85,15 +101,25 @@ class LineAle:
         }
 
 
+    def get_mapped_attributes(self, viewport_size=(800, 600)):
+        return {
+            "color" : self.color,
+            "start_pos" : (MateUtils.map_value_opengl(self.x_start, viewport_size[0], False), MateUtils.map_value_opengl(self.y_start, viewport_size[1], True)),
+            "end_pos" : (MateUtils.map_value_opengl(self.x_end, viewport_size[0], False), MateUtils.map_value_opengl(self.y_end, viewport_size[1], True)),
+            "width" : self.width,
+        }
+
+
 
 class CircleAle:
     def __init__(self, x, y, radius, color, width):
         self.x: SmartCoordinate = SmartCoordinate(x)
         self.y: SmartCoordinate = SmartCoordinate(y)
         self.radius: SmartCoordinate = SmartCoordinate(radius)
-        self.color = color
+        self.color = np.array(color)
         self.width = width
         self.center = (0, 0)
+        self.is_opengl = False
 
 
     def update(self, x_container, y_container, w_container, h_container):
@@ -113,6 +139,14 @@ class CircleAle:
         }
     
 
+    def get_mapped_attributes(self, viewport_size=(800, 600)):
+        return {
+            "color" : self.color,
+            "center" : (MateUtils.map_value_opengl(self.x, viewport_size[0], False), MateUtils.map_value_opengl(self.y, viewport_size[1], True)),
+            "radius" : MateUtils.map_value_opengl(self.radius, viewport_size[0], False),
+            "width" : self.width,
+        }
+
 
 class SurfaceAle:
     def __init__(self, x, y, w, h):
@@ -121,6 +155,7 @@ class SurfaceAle:
         self.w: SmartCoordinate = SmartCoordinate(w)
         self.h: SmartCoordinate = SmartCoordinate(h)
         self.surface: Surface = Surface((self.w.value, self.h.value), SRCALPHA)
+        self.is_opengl = False
 
 
     def update(self, x_container, y_container, w_container, h_container):
@@ -144,4 +179,11 @@ class SurfaceAle:
         return {
             "source" : self.surface,
             "dest" : (self.x.value, self.y.value),
+        }
+    
+
+    def get_mapped_attributes(self, viewport_size=(800, 600)):
+        return {
+            "source" : self.surface,
+            "dest" : (MateUtils.map_value_opengl(self.x, viewport_size[0], False), MateUtils.map_value_opengl(self.y, viewport_size[1], True)),
         }

@@ -32,3 +32,7 @@ class Container(BaseElementUI):
             ris.extend(obj.get_render_objects())
         
         return ris
+    
+
+    def handle_events(self, events):
+        [element.handle_events(events) for index, element in self.child_elements.items()]

@@ -34,6 +34,10 @@ class BaseElementUI:
         self.anchor_mode = 'absolute'
 
         self.shape: ComplexShape = ComplexShape()
+        self.bounding_box: pygame.Rect = pygame.Rect(self.x.value, self.y.value, self.w.value, self.h.value)
+
+        self.is_hover = False
+        self.is_hover_old = False
 
 
     def set_parent(self, obj_origin: str, parent_object: 'BaseElementUI', parent_origin: str, offset_x: str, offset_y: str):
@@ -71,6 +75,7 @@ class BaseElementUI:
         self.x.origin_correction(self.origin, self.w.value, "x")
         self.y.origin_correction(self.origin, self.h.value, "y")
 
+        self.bounding_box = pygame.Rect(self.x.value, self.y.value, self.w.value, self.h.value)
         self.shape.update_shapes(self.x.value, self.y.value, self.w.value, self.h.value)
     
 
@@ -91,3 +96,6 @@ class BaseElementUI:
     def get_render_objects(self):
         return self.shape.get_shapes()
 
+
+    def handle_events(self, events):
+        ...

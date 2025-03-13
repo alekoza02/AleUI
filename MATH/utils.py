@@ -1,3 +1,5 @@
+from UI_ELEMENTS.smart_coordinate import SmartCoordinate
+
 class MateUtils:
     
     @staticmethod
@@ -48,3 +50,12 @@ class MateUtils:
             return float(valore)
         except:
             return std_return
+        
+
+    @staticmethod
+    def map_value_opengl(value: SmartCoordinate, size, invert):
+        '''
+        Maps the value from [0, size] to [-1, 1].
+        '''
+        if invert: return 1 - 2 * value.value / size
+        else: return 2 * value.value / size - 1
