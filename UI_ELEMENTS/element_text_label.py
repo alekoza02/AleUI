@@ -48,7 +48,7 @@ class Label_text(BaseElementUI):
             self.text_diplayed = ["", 0]
             
             for index, sentence in enumerate(text_analyzed.split("\n")):
-
+                ''' INIT NEW LINE OFFSETS'''
                 self.text_diplayed[1] += 1                
 
                 # offset multi-riga
@@ -70,9 +70,11 @@ class Label_text(BaseElementUI):
 
                 if self.text_vertical:
                     elenco_substringhe = elenco_substringhe[::-1]
+                ''' INIT NEW LINE OFFSETS'''
 
                 for substringa_analizzata in elenco_substringhe:
-
+                    
+                    ''' OFFSETS CALCULATION BLOCK '''
                     if substringa_analizzata.pedice or substringa_analizzata.apice:
                         text_diplayed_iteration += substringa_analizzata.testo[:int(len(substringa_analizzata.testo) / 2)]
                     else:
@@ -96,46 +98,43 @@ class Label_text(BaseElementUI):
                         offset_orizzontale_apice = offset_orizzontale
                         offset_orizzontale_pedice = offset_orizzontale
 
-                    if substringa_analizzata.colore is None: substringa_analizzata.colore = [148, 177, 255]
+                    if substringa_analizzata.colore is None: substringa_analizzata.colore = [220, 220, 220]
 
                     offset_pedice_apice = original_spacing_y * 0.5 if substringa_analizzata.pedice else - original_spacing_y * 0.1 if substringa_analizzata.apice else 0
+                    ''' OFFSETS CALCULATION BLOCK '''
 
-                    if substringa_analizzata.highlight and not self.latex_font:
-                        pre_rotation = self.font.font_pyg_r.render("" + "█" * (len(substringa_analizzata.testo)) + "", True, [100, 100, 100])
+                    ''' RENDER BLOCK '''
+                    def add_text_to_render_pipe(pre_rotation, position):
                         if self.text_vertical:
                             pre_rotation = pygame.transform.rotate(pre_rotation, 90)
+                            self.shape.shapes["text_surface"].blit(pre_rotation, (position[1], position[0]))
                         else:
-                            self.shape.shapes["text_surface"].blit(pre_rotation, (original_spacing_x * offset_highlight + offset_usato, offset_frase + offset_pedice_apice))
+                            self.shape.shapes["text_surface"].blit(pre_rotation, (position[0], position[1]))
+
+
+                    if substringa_analizzata.highlight and not self.font.latex_font:
+                        pre_rotation = self.font.font_pyg_r.render(" " + "█" * (len(substringa_analizzata.testo)) + "", True, [100, 100, 100])
+                        add_text_to_render_pipe(pre_rotation, (original_spacing_x * offset_highlight + offset_usato, offset_frase + offset_pedice_apice))
+                        substringa_analizzata.testo = " " + substringa_analizzata.testo + " "
+
 
                     if substringa_analizzata.bold:
                         pre_rotation = self.font.font_pyg_b.render(substringa_analizzata.testo, True, substringa_analizzata.colore)
-                        if self.text_vertical:
-                            pre_rotation = pygame.transform.rotate(pre_rotation, 90)
-                            self.shape.shapes["text_surface"].blit(pre_rotation, (offset_frase + offset_pedice_apice, offset_usato))
-                        else:
-                            self.shape.shapes["text_surface"].blit(pre_rotation, (offset_usato, offset_frase + offset_pedice_apice))
-                    
                     elif substringa_analizzata.italic:
                         pre_rotation = self.font.font_pyg_i.render(substringa_analizzata.testo, True, substringa_analizzata.colore)
-                        if self.text_vertical:
-                            pre_rotation = pygame.transform.rotate(pre_rotation, 90)
-                            self.shape.shapes["text_surface"].blit(pre_rotation, (offset_frase + offset_pedice_apice, offset_usato))
-                        else:
-                            self.shape.shapes["text_surface"].blit(pre_rotation, (offset_usato, offset_frase + offset_pedice_apice))
-                    
                     else:
                         pre_rotation = self.font.font_pyg_r.render(substringa_analizzata.testo, True, substringa_analizzata.colore)
-                        if self.text_vertical:
-                            pre_rotation = pygame.transform.rotate(pre_rotation, 90)
-                            self.shape.shapes["text_surface"].blit(pre_rotation, (offset_frase + offset_pedice_apice, offset_usato))
-                        else:
-                            self.shape.shapes["text_surface"].blit(pre_rotation, (offset_usato, offset_frase + offset_pedice_apice))
                     
+                    add_text_to_render_pipe(pre_rotation, (offset_usato, offset_frase + offset_pedice_apice))
+                    ''' RENDER BLOCK '''
 
+                    ''' OFFSETS UPDATE BLOCK '''
                     font_usato = self.font.font_pyg_i if substringa_analizzata.italic else (self.font.font_pyg_b if substringa_analizzata.bold else self.font.font_pyg_r)
                     
-                    if substringa_analizzata.apice: offset_orizzontale_apice += substringa_analizzata.end(font_usato)
-                    elif substringa_analizzata.pedice: offset_orizzontale_pedice += substringa_analizzata.end(font_usato)
+                    if substringa_analizzata.apice: 
+                        offset_orizzontale_apice += substringa_analizzata.end(font_usato)
+                    elif substringa_analizzata.pedice:
+                        offset_orizzontale_pedice += substringa_analizzata.end(font_usato)
                     else:
                         offset_orizzontale_apice += substringa_analizzata.end(font_usato)
                         offset_orizzontale_pedice += substringa_analizzata.end(font_usato)
@@ -149,6 +148,7 @@ class Label_text(BaseElementUI):
 
                     if max(len(self.text_diplayed[0]), len(text_diplayed_iteration)) == len(text_diplayed_iteration):
                         self.text_diplayed[0] = text_diplayed_iteration
+                    ''' OFFSETS UPDATE BLOCK '''
 
             '''
             end LOGIC BLOCK
@@ -252,8 +252,6 @@ class SubStringa:
 
         formattatori_trovati = []
 
-        primo_formattatore = None
-
         valvola = 0
 
         if "{" in self.testo:
@@ -266,10 +264,6 @@ class SubStringa:
                     # se la substringa che va da i a i + len(form.) è uguale al form. -> trovato un candidato
                     if self.testo[i:i+len(formattatore)] == formattatore:
 
-                        # se questa è la prima volta che si trova un formattatore, me lo segno
-                        if primo_formattatore is None:
-                            primo_formattatore = i
-                        
                         # in generale, tengo traccia dei formattatori trovati, così da sapere quando finisce la parentesi
                         formattatori_trovati.append([formattatore, i])
                         break
@@ -312,8 +306,7 @@ class SubStringa:
                     # ripristino il ciclo
                     valvola = formattatori_trovati[0][2] + 1
                     formattatori_trovati = []
-                    primo_formattatore = None
-
+                    
 
         substringhe_create.append(SubStringa(self.colore, self.bold, self.italic, self.apice, self.pedice, self.highlight, self.testo[valvola:]))
         

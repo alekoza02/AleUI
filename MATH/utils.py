@@ -21,19 +21,13 @@ class MateUtils:
             g = hex(colore[1])
             b = hex(colore[2])
 
-            if colore[0] == 0:
-                r += "0"
-            if colore[1] == 0:
-                g += "0"
-            if colore[2] == 0:
-                b += "0"
+            if colore[0] == 0: r += "0"
+            if colore[1] == 0: g += "0"
+            if colore[2] == 0: b += "0"
 
-            if len(r[2:]) == 1:
-                r = r[:2] + "0" + r[2:]
-            if len(g[2:]) == 1:
-                g = g[:2] + "0" + g[2:]
-            if len(b[2:]) == 1:
-                b = b[:2] + "0" + b[2:]
+            if len(r[2:]) == 1: r = r[:2] + "0" + r[2:]
+            if len(g[2:]) == 1: g = g[:2] + "0" + g[2:]
+            if len(b[2:]) == 1: b = b[:2] + "0" + b[2:]
 
             return f"{r[2:]}{g[2:]}{b[2:]}"
         except ValueError:

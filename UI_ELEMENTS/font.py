@@ -5,9 +5,7 @@ class Font:
     def __init__(self, dim, latex_font=False) -> None:
         
         self.original = int(dim)
-
         self.latex_font = latex_font
-
         self.dim_font = self.original 
 
         if self.latex_font:        
