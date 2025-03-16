@@ -92,7 +92,7 @@ Button_push:
     - $[\text{X}]$ Outline
 
 - Functionality:
-    - $[\text{X}]$ Accept function to execute
+    - $[\checkmark]$ Accept function to execute
     - $[\text{X}]$ Select through $\textit{`tab'}$
     - $[\text{X}]$ Activate with $\textit{`enter'}$
 
@@ -105,7 +105,7 @@ Button_toggle:
     - $[\text{X}]$ Hover sound
     - $[\text{X}]$ Outline
     - $[\text{X}]$ Different styles:
-        - $[\text{X}]$ Classic label
+        - $[\checkmark]$ Classic label
         - $[\text{X}]$ Check mode
             - $[\text{X}]$ Labels on left side
             - $[\text{X}]$ Labels on right side
