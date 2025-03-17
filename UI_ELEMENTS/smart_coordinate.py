@@ -4,6 +4,10 @@ class SmartCoordinate:
         self.int_value: int = 0
 
 
+    def change_str_value(self, string: str):
+        self.lst_str_value = string.split()
+
+
     def update_value(self, w_screen, h_screen, w_viewport, h_viewport, w_container, h_container, offset=0) -> None:
         result = 0
 

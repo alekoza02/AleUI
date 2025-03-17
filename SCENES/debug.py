@@ -1,6 +1,7 @@
 from UI_ELEMENTS.element_button_push import Button_push
 from UI_ELEMENTS.element_container import Container
 from UI_ELEMENTS.element_text_label import Label_text
+from UI_ELEMENTS.element_collapse_window import Collapse_Window
 
 
 DO_NOT_EXECUTE = False
@@ -20,6 +21,11 @@ def build_dev_scene(app: 'App') -> 'App':
     
     app.UI["debug2"] = Container("50vw 5px", "0vh 10px", "50vw -15px", "66.6vh -15px", None, performant=1)
     app.UI["debug3"] = Container("50vw 5px", "66.6vh 5px", "50vw -15px", "33.3vh -15px", None, performant=1)
+
+    app.UI["debug2"].add_element("debugger", Collapse_Window("50cw", "0ch 5px", "100cw -10px", "50ch -7.5px", "center-up", title="Collapsable 1", performant=1))
+    app.UI["debug2"].add_element("debugger2", Collapse_Window("0px", "0px", "100cw -10px", "50ch -7.5px", "center-up", title="Collapsable 2", performant=1))
+    app.UI["debug2"].child_elements["debugger2"].set_parent("center-up", app.UI["debug2"].child_elements["debugger"], "center-down", "0px", "5px")
+
 
     # Build the scene specified and updates it to the screen
     app.update_coords_UI_elements()

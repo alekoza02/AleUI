@@ -4,6 +4,8 @@ import ctypes
 from UI_ELEMENTS.shapes import ComplexShape, RectAle, LineAle, CircleAle
 from UI_ELEMENTS.smart_coordinate import SmartCoordinate
 
+from AleUI import AppSizes 
+
 # Informations about the coordinates:
 # Xpx: size in pixels
 # Xvw: size in percentage of the viewport's width
@@ -39,23 +41,36 @@ class BaseElementUI:
         self.is_hover = False
         self.is_hover_old = False
 
+        self.parent_object: None | BaseElementUI = None
 
-    def set_parent(self, obj_origin: str, parent_object: 'BaseElementUI', parent_origin: str, offset_x: str, offset_y: str):
+
+    def set_parent(self, obj_origin: str, anchor_object: 'BaseElementUI', parent_origin: str, offset_x: str, offset_y: str):
         '''
         Not implemented yet.
         '''
         self.origin = obj_origin
         self.anchor_mode = 'relative'
-        self.parent_object = parent_object
-        self.parent_origin = parent_origin
+        self.anchor_object = anchor_object
+        self.anchor_origin = parent_origin
         self.offset_x = SmartCoordinate(offset_x)
         self.offset_y = SmartCoordinate(offset_y)
 
 
-    def analyze_coordinate(self, w_screen, h_screen, w_viewport, h_viewport, w_container=None, h_container=None, offset_x=0, offset_y=0) -> None:
+    def analyze_coordinate(self, offset_x=0, offset_y=0) -> None:
+
+        sizes = AppSizes()
+        w_screen = sizes.w_screen
+        h_screen = sizes.h_screen
+        w_viewport = sizes.w_viewport
+        h_viewport = sizes.h_viewport
+
+        if not self.parent_object is None:
+            w_container, h_container = self.parent_object.w.value, self.parent_object.h.value
+        else:
+            w_container, h_container = None, None
 
         if self.anchor_mode == 'relative':
-            pos_info = self.parent_object.get_xy_of_origin(self.parent_origin)
+            pos_info = self.anchor_object.get_xy_of_origin(self.anchor_origin)
             self.offset_x.update_value(w_screen, h_screen, w_viewport, h_viewport, w_container, h_container, 0)
             self.offset_y.update_value(w_screen, h_screen, w_viewport, h_viewport, w_container, h_container, 0)
             

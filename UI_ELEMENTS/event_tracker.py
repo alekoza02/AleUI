@@ -14,8 +14,10 @@ class EventTracker:
             self.dragging = False
             self.drag_start_time = 0
             self.drag_start_pos = (0, 0)
+            self.mouse_pos = (0, 0)
             self.total_drag_distance = 0
             self.key_press_times = {}
+            self.request_for_window_update = False
             self.initialized = True  # Ensure it doesn't reinitialize
 
 

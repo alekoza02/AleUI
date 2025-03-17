@@ -20,6 +20,10 @@ class ComplexShape:
             shape.update(new_x, new_y, new_w, new_h)
 
 
+    def change_shape_color(self, key, color):
+        self.shapes[key].color = np.array(color)
+
+
     def get_shapes(self):
         return [element for key, element in self.shapes.items()]
     

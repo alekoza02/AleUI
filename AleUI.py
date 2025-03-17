@@ -13,13 +13,30 @@ from UI_ELEMENTS.event_tracker import EventTracker
 DO_NOT_EXECUTE = False
 if DO_NOT_EXECUTE:
     from UI_ELEMENTS.base_element import BaseElementUI
+    from UI_ELEMENTS.element_container import Container
+
+
+class AppSizes:
+    _shared_state = {}  # Shared state across instances
+
+    def __init__(self):
+        self.__dict__ = self._shared_state  # Make all instances share the same state
+
+        # Initialize only once
+        if not hasattr(self, "initialized"):
+            self.w_screen: int = 1920
+            self.w_viewport: int = 800
+            self.h_screen: int = 1080
+            self.h_viewport: int = 600
+            self.initialized: bool = True  # Ensure it doesn't reinitialize
 
 class App:
     def __init__(self, debug=False):
         self.running: bool
         self.debug: bool = debug
-        self.UI: dict[str, BaseElementUI] = {}
+        self.UI: dict[str, Container] = {}
         self.render_buffer: list = []
+        self.sizes = AppSizes()
 
 
     def launch(self):
@@ -43,13 +60,13 @@ class App:
         scale_factor = ctypes.windll.shcore.GetScaleFactorForDevice(0) / 100
 
         # Screen's settings
-        self.w_screen: int = int(screen_info.current_w * scale_factor)
-        self.h_screen: int = int(screen_info.current_h * scale_factor)
+        self.sizes.w_screen = int(screen_info.current_w * scale_factor)
+        self.sizes.h_screen = int(screen_info.current_h * scale_factor)
 
-        self.w, self.h = self.w_screen * 0.9, self.h_screen * 0.9
+        self.sizes.w_viewport, self.sizes.h_viewport = self.sizes.w_screen * 0.9, self.sizes.h_screen * 0.9
 
         # Window generation
-        self.root_window = pygame.display.set_mode((self.w, self.h), DOUBLEBUF | RESIZABLE)
+        self.root_window = pygame.display.set_mode((self.sizes.w_viewport, self.sizes.h_viewport), DOUBLEBUF | RESIZABLE)
 
 
     def close(self):
@@ -67,7 +84,7 @@ class App:
 
     def update_coords_UI_elements(self):
         for nome, elemento in self.UI.items():
-            elemento.analyze_coordinate(self.w_screen, self.h_screen, self.w, self.h, None, None)
+            elemento.analyze_coordinate()
 
 
     def render(self):        
@@ -131,7 +148,7 @@ class App:
 
             if event.type == pygame.VIDEORESIZE:
                 # if not self.fullscreen:
-                self.w, self.h = event.w, event.h
+                self.sizes.w_viewport, self.sizes.h_viewport = event.w, event.h
                 self.update_coords_UI_elements()
 
         for index, item in self.UI.items():
@@ -140,12 +157,12 @@ class App:
 
     def toggle_fullscreen(self):
         if self.fullscreen:
-            self.w, self.h = self.w_screen * 0.9, self.h_screen * 0.9
-            self.root_window = pygame.display.set_mode((self.w, self.h), DOUBLEBUF | RESIZABLE)
+            self.sizes.w_viewport, self.sizes.h_viewport = self.sizes.w_screen * 0.9, self.sizes.h_screen * 0.9
+            self.root_window = pygame.display.set_mode((self.sizes.w_viewport, self.sizes.h_viewport), DOUBLEBUF | RESIZABLE)
             self.update_coords_UI_elements()
         else:
-            self.w, self.h, = self.w_screen, self.h_screen
-            self.root_window = pygame.display.set_mode((self.w, self.h), DOUBLEBUF | FULLSCREEN)
+            self.sizes.w_viewport, self.sizes.h_viewport, = self.sizes.w_screen, self.sizes.h_screen
+            self.root_window = pygame.display.set_mode((self.sizes.w_viewport, self.sizes.h_viewport), DOUBLEBUF | FULLSCREEN)
             self.update_coords_UI_elements()
             
         self.fullscreen = not self.fullscreen

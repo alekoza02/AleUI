@@ -11,7 +11,7 @@ if DO_NOT_EXECUTE:
     import pygame
 
 class Label_text(BaseElementUI):
-    def __init__(self, x, y, w, h, origin=None, text="Prova\\^{Passa}\\_{\\i{w\\#dc143c{o}w}}\nCannot believe it!", use_latex_font=False, text_centered_x=True, text_centered_y=True, performant=False):
+    def __init__(self, x, y, w, h, origin=None, text="Prova\\^{Passa}\\_{\\i{w\\#dc143c{o}w}}\nCannot believe it!", use_latex_font=False, text_centered_x=True, text_centered_y=True, text_tag_support=True, performant=False):
         super().__init__(x, y, w, h, origin, performant)
 
         # shape
@@ -26,8 +26,8 @@ class Label_text(BaseElementUI):
         self.text = text
         self.text_vertical = False          # Decides if the text is rendered vertical or not
         self.text_diplayed = ["", 0]        # [longest text line found, number of lines]
-        self.text_tag_support = True        # Decides if the text supports tags
-        self.font = Font(64, use_latex_font)
+        self.text_tag_support = text_tag_support        # Decides if the text supports tags
+        self.font = Font(24, use_latex_font)
         self.update_text()
 
 
@@ -156,7 +156,7 @@ class Label_text(BaseElementUI):
 
         else:
             self.text_diplayed = [self.text, 1]
-            rendered_text = self.font.font_pyg_r.render(self.text, True, [148, 177, 255])
+            rendered_text = self.font.font_pyg_r.render(self.text, True, [220, 220, 220])
 
             x_offset, y_offset = 0, 0
 
@@ -169,8 +169,8 @@ class Label_text(BaseElementUI):
             self.shape.shapes["text_surface"].blit(rendered_text, (x_offset, y_offset))
 
 
-    def analyze_coordinate(self, w_screen, h_screen, w_viewport, h_viewport, w_container=None, h_container=None, offset_x=0, offset_y=0) -> None:
-        super().analyze_coordinate(w_screen, h_screen, w_viewport, h_viewport, w_container, h_container, offset_x, offset_y)
+    def analyze_coordinate(self, offset_x=0, offset_y=0) -> None:
+        super().analyze_coordinate(offset_x, offset_y)
         self.update_text()
 
 
