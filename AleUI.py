@@ -7,6 +7,8 @@ from pygame.locals import DOUBLEBUF, RESIZABLE, FULLSCREEN
 import numpy as np
 import ctypes
 
+from copy import deepcopy
+
 from UI_ELEMENTS.shapes import RectAle, LineAle, CircleAle, SurfaceAle
 from UI_ELEMENTS.event_tracker import EventTracker
 
@@ -35,7 +37,7 @@ class App:
         self.running: bool
         self.debug: bool = debug
         self.UI: dict[str, Container] = {}
-        self.render_buffer: list = []
+        self.render_buffer: dict[str, list[BaseElementUI]] = {}
         self.sizes = AppSizes()
 
 
@@ -88,7 +90,6 @@ class App:
 
 
     def render(self):        
-        self.root_window.fill((25, 25, 25))
         self.parse_UI_elements()
         self.render_elements()
 
@@ -97,39 +98,48 @@ class App:
 
 
     def parse_UI_elements(self):
-        self.render_buffer = []
+        self.render_buffer = {}
         for nome, elemento in self.UI.items():
-            self.render_buffer.extend(elemento.get_render_objects())
+            self.render_buffer[nome] = elemento.get_render_objects()
         
 
     def render_elements(self):
 
-        for object in self.render_buffer:
-            if type(object) == RectAle:
-                if object.is_opengl:
-                    pygame.draw.rect(self.root_window, **object.get_mapped_attributes())  
-                else:
-                    pygame.draw.rect(self.root_window, **object.get_attributes())  
-            elif type(object) == LineAle:
-                if object.is_opengl:
-                    pygame.draw.line(self.root_window, **object.get_mapped_attributes())   
-                else:
-                    pygame.draw.line(self.root_window, **object.get_attributes())   
-            elif type(object) == CircleAle:
-                if object.is_opengl:
-                    pygame.draw.circle(self.root_window, **object.get_mapped_attributes())
-                else:
-                    pygame.draw.circle(self.root_window, **object.get_attributes())
-            elif type(object) == SurfaceAle:
-                if object.is_opengl:
-                    self.root_window.blit(**object.get_mapped_attributes())
-                else:
-                    self.root_window.blit(**object.get_attributes())
+        # color the background of the app
+        self.root_window.fill((25, 25, 25))
 
-        self.render_buffer = []
+        for key, single_render_buffer in self.render_buffer.items():
+            # color the background of containers
+            self.UI[key].clip_canvas.fill((30, 30, 30))
+            
+            for object in single_render_buffer:
+
+                if object.is_opengl:
+                    attributes = object.get_mapped_attributes()
+                else:
+                    attributes = object.get_attributes()
+                
+
+                if type(object) == RectAle:
+                    pygame.draw.rect(self.UI[key].clip_canvas, **attributes)  
+                    
+                elif type(object) == LineAle:
+                    pygame.draw.line(self.UI[key].clip_canvas, **attributes)   
+                
+                elif type(object) == CircleAle:
+                    pygame.draw.circle(self.UI[key].clip_canvas, **attributes)
+                
+                elif type(object) == SurfaceAle:
+                    self.UI[key].clip_canvas.blit(**attributes)
+                    
+            self.root_window.blit(self.UI[key].clip_canvas, (self.UI[key].x.value, self.UI[key].y.value))
+
+        self.render_buffer = {}
 
 
     def get_events(self):
+        self.event_tracker.reset()
+        
         events = pygame.event.get()
 
         for event in events:

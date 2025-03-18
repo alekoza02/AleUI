@@ -1,5 +1,6 @@
 import pygame
 import time
+import numpy as np
 
 class EventTracker:
     _shared_state = {}  # Shared state across instances
@@ -15,6 +16,10 @@ class EventTracker:
             self.drag_start_time = 0
             self.drag_start_pos = (0, 0)
             self.mouse_pos = (0, 0)
+
+            # list containing all the mouse positions relative to each container. Note that everytime we need to access this value it is enough to access the [-1], since at each cycle the list is reset and populated in order ov event handling
+            self.local_mouse_pos = []
+            
             self.total_drag_distance = 0
             self.key_press_times = {}
             self.scrolled = 0
@@ -57,6 +62,12 @@ class EventTracker:
 
         if event.type == pygame.MOUSEMOTION:
             self.mouse_pos = event.pos
+            self.local_mouse_pos = []
+
+
+    def reset(self):
+        self.local_mouse_pos = []
+        self.scrolled = 0
 
 
     def track_keyboard_events(self, event):

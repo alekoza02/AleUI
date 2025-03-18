@@ -1,0 +1,15 @@
+{
+	"nodes":[
+		{"id":"3b97b09b76f868c1","x":-260,"y":-80,"width":250,"height":60,"type":"text","text":"AleUI"},
+		{"id":"6095806f9f7aa70b","x":-260,"y":45,"width":250,"height":55,"type":"text","text":"Container"},
+		{"id":"37d8b23ff4cd16cb","x":-260,"y":160,"width":250,"height":50,"type":"text","text":"Collapse"},
+		{"id":"5bb5f5e7dcdcb05d","x":-260,"y":280,"width":250,"height":50,"type":"text","text":"Button"},
+		{"id":"ee8607f2c2f12104","x":-260,"y":400,"width":250,"height":50,"type":"text","text":"Label"}
+	],
+	"edges":[
+		{"id":"fab63513e521b1b4","fromNode":"3b97b09b76f868c1","fromSide":"bottom","toNode":"6095806f9f7aa70b","toSide":"top"},
+		{"id":"e75fbe726e0d40bf","fromNode":"6095806f9f7aa70b","fromSide":"bottom","toNode":"37d8b23ff4cd16cb","toSide":"top"},
+		{"id":"0ea64835ade21cdc","fromNode":"37d8b23ff4cd16cb","fromSide":"bottom","toNode":"5bb5f5e7dcdcb05d","toSide":"top"},
+		{"id":"b684e7d0d0e4eac8","fromNode":"5bb5f5e7dcdcb05d","fromSide":"bottom","toNode":"ee8607f2c2f12104","toSide":"top"}
+	]
+}

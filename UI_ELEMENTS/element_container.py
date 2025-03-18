@@ -1,6 +1,9 @@
 from UI_ELEMENTS.base_element import BaseElementUI
 from UI_ELEMENTS.shapes import RectAle, LineAle, CircleAle
 from UI_ELEMENTS.event_tracker import EventTracker
+from pygame import Rect, Surface, SRCALPHA
+import numpy as np
+from AleUI import AppSizes
 
 DO_NOT_EXECUTE = False
 if DO_NOT_EXECUTE:
@@ -16,8 +19,9 @@ class Container(BaseElementUI):
             self.scrollable_distance: float = 0.0   # maximum distance scrollable as value in pixels (obtained by testing the height of each element)
             self.scroll_update: int = 0             # value extracted from the events (modify to match the excursion needed)
 
+        self.clip_canvas = Surface((self.w.value, self.h.value))
+        
         self.child_elements: dict[str, BaseElementUI] = {}
-        self.shape.add_shape("bg", RectAle("0cw", "0ch", "100cw", "100ch", [100, 100, 155], 0, 0))
 
 
     def add_element(self, name, element):
@@ -27,18 +31,19 @@ class Container(BaseElementUI):
 
     def analyze_coordinate(self):
         super().analyze_coordinate()
+        self.clip_canvas = Surface((self.w.value, self.h.value))
 
         for name, child in self.child_elements.items():
 
-            offset_x = self.x.value
-            offset_y = self.y.value
+            # generally the only offset used will be the scroll, but in general might be used for pan
+            offset_x = 0
+            offset_y = 0
 
             # considers the scroll amount on independet elements
             # anchored elements will follow automatically
             if self.scrollable and child.anchor_mode == 'absolute':
                 scroll_iteration = self.scroll_update
-                print(f"Analyzed: {scroll_iteration = }")
-                offset_y += scroll_iteration * 10
+                offset_y += scroll_iteration * AppSizes().h_viewport / 200
 
             child.analyze_coordinate(offset_x, offset_y)
         
@@ -57,18 +62,20 @@ class Container(BaseElementUI):
     
 
     def handle_events(self, events):
+
+        # calculates the local position of the mouse relative to the container
+        tracker = EventTracker()
+        tracker.local_mouse_pos.append(np.subtract(tracker.mouse_pos, np.array([self.x.value, self.y.value])))
+
         # handle scroll (if enabled)
         if self.scrollable:
-            tracker = EventTracker()
+            old_scroll = self.scroll_update
             if self.bounding_box.collidepoint(tracker.mouse_pos) and tracker.scrolled != 0:
                 scrollato = tracker.get_scroll_info()
-                print(f"Obtained scroll amount of: {scrollato = }")
                 tracker.scrolled -= scrollato
-                print(f"Removed from Singleton: {tracker.scrolled = }")
                 self.scroll_update += scrollato
-                print(f"Updated self.scroll_update: {self.scroll_update = }")
-        
-            if self.scroll_update != 0:
+                
+            if self.scroll_update != 0 and old_scroll != self.scroll_update:
                 self.analyze_coordinate()
         
         # handle child events
