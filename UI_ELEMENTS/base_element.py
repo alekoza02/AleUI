@@ -43,6 +43,25 @@ class BaseElementUI:
 
         self.parent_object: None | BaseElementUI = None
 
+        self.is_enabled = True
+        self.commands_stack = {}
+
+
+    def ask_enable_disable_element(self, enable: bool=True, priority: int=1):
+        '''
+        Give a bigger priority to overcome other commands.
+        '''
+        self.commands_stack[priority] = enable
+
+        max_priority = -1
+        result = enable
+        for priority, comand in self.commands_stack.items():
+            if priority > max_priority and comand == False:
+                max_priority = priority
+                result = comand
+
+        self.is_enabled = result
+
 
     def set_parent(self, anchor_object: 'BaseElementUI', parent_origin: str, offset_x: str, offset_y: str):
         '''
@@ -108,8 +127,11 @@ class BaseElementUI:
 
 
     def get_render_objects(self):
-        return self.shape.get_shapes()
-
+        if self.is_enabled:
+            return self.shape.get_shapes()
+        else:
+            return []
+        
 
     def handle_events(self, events):
         ...

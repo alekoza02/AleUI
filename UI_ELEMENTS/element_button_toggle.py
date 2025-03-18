@@ -22,29 +22,30 @@ class Button_toggle(BaseElementUI):
 
 
     def handle_events(self, events: list['Event']):
-        # get the latest events and relative positions 
-        tracker = EventTracker()
+        if self.is_enabled:
+            # get the latest events and relative positions 
+            tracker = EventTracker()
 
-        for event in events:
-            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                if self.bounding_box.collidepoint(tracker.local_mouse_pos[-1]):
-                    self.toggled = not self.toggled
-                    if self.toggled: self.shape.change_shape_color("active", [100, 100, 100])
-                    else: self.shape.change_shape_color("active", self.shape.shapes["bg"].color)
+            for event in events:
+                if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                    if self.bounding_box.collidepoint(tracker.local_mouse_pos[-1]):
+                        self.toggled = not self.toggled
+                        if self.toggled: self.shape.change_shape_color("active", [100, 100, 100])
+                        else: self.shape.change_shape_color("active", self.shape.shapes["bg"].color)
 
-        # Hover block #
-        if self.bounding_box.collidepoint(tracker.local_mouse_pos[-1]):
-            self.is_hover_old = self.is_hover
-            self.is_hover = True
-        else:
-            self.is_hover_old = self.is_hover
-            self.is_hover = False
-        
-        
-        if self.is_hover and self.is_hover != self.is_hover_old:
-            self.shape.shapes["active"].color += 10
-            self.shape.shapes["bg"].color += 10
-        elif not self.is_hover and self.is_hover != self.is_hover_old:
-            self.shape.shapes["active"].color -= 10
-            self.shape.shapes["bg"].color -= 10
-        # Hover block #
+            # Hover block #
+            if self.bounding_box.collidepoint(tracker.local_mouse_pos[-1]):
+                self.is_hover_old = self.is_hover
+                self.is_hover = True
+            else:
+                self.is_hover_old = self.is_hover
+                self.is_hover = False
+            
+            
+            if self.is_hover and self.is_hover != self.is_hover_old:
+                self.shape.shapes["active"].color += 10
+                self.shape.shapes["bg"].color += 10
+            elif not self.is_hover and self.is_hover != self.is_hover_old:
+                self.shape.shapes["active"].color -= 10
+                self.shape.shapes["bg"].color -= 10
+            # Hover block #

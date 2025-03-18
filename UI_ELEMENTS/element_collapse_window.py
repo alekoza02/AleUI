@@ -10,10 +10,10 @@ class Collapse_Window(BaseElementUI):
         super().__init__(x, y, w, h, achor, performant)
 
         self.child_elements: dict[str, BaseElementUI] = {}
-        self.shape.add_shape("bg", RectAle("0cw", "0ch", "100cw", "100ch", [255, 100, 100], 0, 2))
+        self.shape.add_shape("bg", RectAle("0cw", "0ch", "100cw", "100ch", [20, 20, 20], 0, 2))
         self.componenets: dict[str, Label_text | Button_toggle] = {
             "toggle" : Button_toggle("1vw", "1vh", "2.5cw", "2.5cw", "lu"),
-            "title" : Label_text("2vw 2.5cw", "1vh", "30cw", "2.5cw", "lu", text=title, text_centered_x=False, text_tag_support=False)
+            "title" : Label_text("2vw 2.5cw", "1vh", "30cw", "2.5cw", "lu", text=title, text_centered_x=False, text_tag_support=False, render_bg=False)
         }
 
         for key, value in self.componenets.items():
@@ -46,37 +46,41 @@ class Collapse_Window(BaseElementUI):
 
     
     def get_render_objects(self):
-        ris = []
-        
-        # adds himself
-        ris.extend(super().get_render_objects())
-        for name, obj in self.componenets.items():            
-            ris.extend(obj.get_render_objects())
-
-        # adds childrens
-        if self.componenets["toggle"].get_state():
-            for name, obj in self.child_elements.items():
-                ris.extend(obj.get_render_objects())
+        if self.is_enabled:
+            ris = []
             
-        return ris
-    
+            # adds himself
+            ris.extend(super().get_render_objects())
+            for name, obj in self.componenets.items():            
+                ris.extend(obj.get_render_objects())
+
+            # adds childrens
+            if self.componenets["toggle"].get_state():
+                for name, obj in self.child_elements.items():
+                    ris.extend(obj.get_render_objects())
+                
+            return ris
+        else:
+            return []
+
 
     def handle_events(self, events):
-        # handle self components events
-        [element.handle_events(events) for index, element in self.componenets.items()]
+        if self.is_enabled:
+            # handle self components events
+            [element.handle_events(events) for index, element in self.componenets.items()]
 
-        # check for open / close the window
-        old_h = self.h.lst_str_value
-        if self.componenets["toggle"].get_state():
-            self.h.change_str_value(self.h_closed)
-        else:
-            self.h.change_str_value(self.h_opened)
-        
-        # request for update open / close call
-        if old_h != self.h.lst_str_value:
-            if not self.parent_object is None:
-                self.parent_object.analyze_coordinate()
+            # check for open / close the window
+            old_h = self.h.lst_str_value
+            if self.componenets["toggle"].get_state():
+                self.h.change_str_value(self.h_closed)
+            else:
+                self.h.change_str_value(self.h_opened)
+            
+            # request for update open / close call
+            if old_h != self.h.lst_str_value:
+                if not self.parent_object is None:
+                    self.parent_object.analyze_coordinate()
 
-        # handle child events
-        if self.componenets["toggle"].get_state():
-            [element.handle_events(events) for index, element in self.child_elements.items()]
+            # handle child events
+            if self.componenets["toggle"].get_state():
+                [element.handle_events(events) for index, element in self.child_elements.items()]

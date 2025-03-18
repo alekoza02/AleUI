@@ -11,11 +11,12 @@ if DO_NOT_EXECUTE:
     import pygame
 
 class Label_text(BaseElementUI):
-    def __init__(self, x, y, w, h, origin=None, text="Prova\\^{Passa}\\_{\\i{w\\#dc143c{o}w}}\nCannot believe it!", use_latex_font=False, text_centered_x=True, text_centered_y=True, text_tag_support=True, performant=False):
+    def __init__(self, x, y, w, h, origin=None, text="Prova\\^{Passa}\\_{\\i{w\\#dc143c{o}w}}\nCannot believe it!", use_latex_font=False, text_centered_x=True, text_centered_y=True, text_tag_support=True, render_bg=True, performant=False):
         super().__init__(x, y, w, h, origin, performant)
 
         # shape
-        self.shape.add_shape("bg", RectAle("0cw", "0ch", "100cw", "100ch", [60, 60, 60], 0, 0))
+        if render_bg:
+            self.shape.add_shape("bg", RectAle("0cw", "0ch", "100cw", "100ch", [60, 60, 60], 0, 0))
         self.shape.add_shape("text_surface", SurfaceAle("0cw", "0ch", "100cw", "100ch"))
 
         # text info (geometrical)

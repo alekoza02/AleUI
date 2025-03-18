@@ -33,6 +33,11 @@ def build_dev_scene(app: 'App') -> 'App':
     app.UI["debug2"].child_elements["debugger3"].set_parent(app.UI["debug2"].child_elements["prova"], "left-down", "0px", "2.5cw")
     app.UI["debug2"].add_element("debugger4", Collapse_Window("0px", "0px", "100cw -10px", "20ch", "center-up", title="Collapsable 4", performant=1))
     app.UI["debug2"].child_elements["debugger4"].set_parent(app.UI["debug2"].child_elements["debugger3"], "center-down", "0px", "5px")
+    
+    app.UI["debug2"].add_element("debugger5", Collapse_Window("0px", "0px", "100cw -10px", "20ch", "left-up", title="Collapsable 4", performant=1))
+    app.UI["debug2"].child_elements["debugger5"].set_parent(app.UI["debug2"].child_elements["debugger4"], "left-down", "0px", "2.5cw")
+    app.UI["debug2"].add_element("debugger6", Collapse_Window("0px", "0px", "100cw -10px", "20ch", "center-up", title="Collapsable 5", performant=1))
+    app.UI["debug2"].child_elements["debugger6"].set_parent(app.UI["debug2"].child_elements["debugger5"], "center-down", "0px", "5px")
 
 
 

@@ -1,7 +1,7 @@
 from UI_ELEMENTS.base_element import BaseElementUI
 from UI_ELEMENTS.shapes import RectAle, LineAle, CircleAle
 from UI_ELEMENTS.event_tracker import EventTracker
-from pygame import Rect, Surface, SRCALPHA
+from pygame import Surface
 import numpy as np
 from AleUI import AppSizes
 
@@ -15,13 +15,26 @@ class Container(BaseElementUI):
 
         self.scrollable = scrollable
         if self.scrollable:
-            self.scrolled: float = 0.0              # normalized value of scrolled distance so far between [0, 1]
-            self.scrollable_distance: float = 0.0   # maximum distance scrollable as value in pixels (obtained by testing the height of each element)
-            self.scroll_update: int = 0             # value extracted from the events (modify to match the excursion needed)
+            self.scrolled: float = 0.0                              # normalized value of scrolled distance so far between [0, 1]
+            self.scrollable_distance: float = 0.0                   # maximum distance scrollable as value in pixels (obtained by testing the height of each element)
+            self.scroll_update: int = 0                             # value extracted from the events (modify to match the excursion needed)
+            self.scroll_speed = round(AppSizes().h_viewport / 200)  # sets the speed at which the elements move
 
         self.clip_canvas = Surface((self.w.value, self.h.value))
         
         self.child_elements: dict[str, BaseElementUI] = {}
+
+
+    @property
+    def scroll_delta(self):
+        '''
+        Returns the value in pixel of the scroll update times the scroll speed.
+
+        ```
+        return round(self.scroll_update * self.scroll_speed)
+        ```
+        '''
+        return round(self.scroll_update * self.scroll_speed)
 
 
     def add_element(self, name, element):
@@ -42,11 +55,36 @@ class Container(BaseElementUI):
             # considers the scroll amount on independet elements
             # anchored elements will follow automatically
             if self.scrollable and child.anchor_mode == 'absolute':
-                scroll_iteration = self.scroll_update
-                offset_y += scroll_iteration * AppSizes().h_viewport / 200
+                offset_y += self.scroll_delta
 
             child.analyze_coordinate(offset_x, offset_y)
-        
+
+        # update the maximum excursion of the scrollable element
+        self.analyze_max_scroll_depth()
+
+        # if the container is scrollable, test each child after the coordinate update if they are outside the bounding box
+        self.analyze_children_outside_BB()
+
+
+    def analyze_max_scroll_depth(self):
+        max_value = -1e6
+        if self.scrollable:
+            for name, child in self.child_elements.items():
+                tip = child.y.value + child.h.value
+                if tip > max_value:
+                    max_value = tip
+            self.scrollable_distance = max_value - self.scroll_delta
+            self.scrolled = self.scroll_delta / self.scrollable_distance
+
+
+    def analyze_children_outside_BB(self):
+        if self.scrollable:
+            for name, child in self.child_elements.items():
+                if child.y.value + child.h.value > self.y.value and child.y.value < self.y.value + self.h.value:
+                    child.ask_enable_disable_element(True, 1)
+                else:
+                    child.ask_enable_disable_element(False, 1)
+
     
     def get_render_objects(self):
         ris = []
@@ -74,8 +112,16 @@ class Container(BaseElementUI):
                 scrollato = tracker.get_scroll_info()
                 tracker.scrolled -= scrollato
                 self.scroll_update += scrollato
+
+                # control to not overshoot (negative case)
+                if self.scroll_update >= 0:
+                    self.scroll_update = 0
                 
-            if self.scroll_update != 0 and old_scroll != self.scroll_update:
+                # control to not overshoot (positive case)
+                if abs(self.scroll_delta) > abs(self.scrollable_distance):
+                    self.scroll_update = - self.scrollable_distance / self.scroll_speed
+
+            if old_scroll != self.scroll_update:
                 self.analyze_coordinate()
         
         # handle child events
