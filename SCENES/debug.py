@@ -26,6 +26,11 @@ def build_dev_scene(app: 'App') -> 'App':
     app.UI["debug2"].add_element("debugger2", Collapse_Window("0px", "0px", "100cw -10px", "50ch -7.5px", "center-up", title="Collapsable 2", performant=1))
     app.UI["debug2"].child_elements["debugger2"].set_parent("center-up", app.UI["debug2"].child_elements["debugger"], "center-down", "0px", "5px")
 
+    app.UI["debug2"].child_elements["debugger"].add_element("prova1", Label_text("50cw", "0px", "50cw -5px", "50ch -5px", "left-up", "Primo testo", text_tag_support=False))
+    app.UI["debug2"].child_elements["debugger"].add_element("prova2", Label_text("50cw", "50ch", "50cw -5px", "50ch -5px", "left-up", "Secondo testo", text_tag_support=False))
+    
+    app.UI["debug2"].child_elements["debugger2"].add_element("prova3", Label_text("50cw", "0px", "50cw -5px", "50ch -5px", "left-up", "Terzo testo", text_tag_support=False))
+    app.UI["debug2"].child_elements["debugger2"].add_element("prova4", Label_text("50cw", "50ch", "50cw -5px", "50ch -5px", "left-up", "Quarto testo", text_tag_support=False))
 
     # Build the scene specified and updates it to the screen
     app.update_coords_UI_elements()

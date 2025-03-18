@@ -37,6 +37,13 @@ class Collapse_Window(BaseElementUI):
         for name, child in self.child_elements.items():
             child.analyze_coordinate(self.x.value, self.y.value)
 
+
+    def get_smart_offset_toggle_zone(self):
+        """
+        Return the right-down corner of the bounding box of the toggle zone, if an object is put inside this zone the program might encour in unexpected behaviour.
+        """
+        return "2vw 32.5cw", "1vh 2.5cw"
+
     
     def get_render_objects(self):
         ris = []
@@ -47,13 +54,15 @@ class Collapse_Window(BaseElementUI):
             ris.extend(obj.get_render_objects())
 
         # adds childrens
-        for name, obj in self.child_elements.items():
-            ris.extend(obj.get_render_objects())
-        
+        if self.componenets["toggle"].get_state():
+            for name, obj in self.child_elements.items():
+                ris.extend(obj.get_render_objects())
+            
         return ris
     
 
     def handle_events(self, events):
+        # handle self components events
         [element.handle_events(events) for index, element in self.componenets.items()]
 
         # check for open / close the window
@@ -65,9 +74,9 @@ class Collapse_Window(BaseElementUI):
         
         # request for update open / close call
         if old_h != self.h.lst_str_value:
-            # db = EventTracker()
-            # db.request_for_window_update = True
             if not self.parent_object is None:
                 self.parent_object.analyze_coordinate()
 
-        [element.handle_events(events) for index, element in self.child_elements.items()]
+        # handle child events
+        if self.componenets["toggle"].get_state():
+            [element.handle_events(events) for index, element in self.child_elements.items()]
