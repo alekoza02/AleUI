@@ -44,11 +44,10 @@ class BaseElementUI:
         self.parent_object: None | BaseElementUI = None
 
 
-    def set_parent(self, obj_origin: str, anchor_object: 'BaseElementUI', parent_origin: str, offset_x: str, offset_y: str):
+    def set_parent(self, anchor_object: 'BaseElementUI', parent_origin: str, offset_x: str, offset_y: str):
         '''
         Not implemented yet.
         '''
-        self.origin = obj_origin
         self.anchor_mode = 'relative'
         self.anchor_object = anchor_object
         self.anchor_origin = parent_origin

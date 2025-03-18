@@ -17,6 +17,7 @@ class EventTracker:
             self.mouse_pos = (0, 0)
             self.total_drag_distance = 0
             self.key_press_times = {}
+            self.scrolled = 0
             self.request_for_window_update = False
             self.initialized = True  # Ensure it doesn't reinitialize
 
@@ -39,6 +40,12 @@ class EventTracker:
             self.drag_start_time = current_time
             self.drag_start_pos = event.pos
             self.total_drag_distance = 0
+
+            # scroll info
+            if event.button == 4:
+                self.scrolled += 1
+            if event.button == 5:
+                self.scrolled -= 1
 
         elif event.type == pygame.MOUSEBUTTONUP:
             self.dragging = False
@@ -79,3 +86,7 @@ class EventTracker:
                 "start_pos": self.drag_start_pos
             }
         return None
+    
+
+    def get_scroll_info(self):
+        return self.scrolled
