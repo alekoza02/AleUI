@@ -2,7 +2,7 @@ if __name__ == "__main__":
     from AleUI import App
     from SCENES.debug import build_dev_scene
 
-    PROFILATORE = 0
+    PROFILATORE = 1
     from time import perf_counter; start_time = perf_counter() 
 
     if PROFILATORE:
