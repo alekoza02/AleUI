@@ -19,8 +19,12 @@ Tree structure:
 --
 All the elements of the UI must be contained in a container, which are bounded to the main window.
 
-- Window:  
-    - Containers:  
+- `Window` (can contain only `Containers`):  
+    - `Containers` (cannot contain other `Containers`):  
+        - `Collapse_windows` (cannot contain other `Collapse_windows`)
+            - Label_text  
+            - Button_toggle  
+            - Button_push    
         - Label_text  
         - Button_toggle  
         - Button_push    
@@ -69,7 +73,7 @@ Label_text:
     - $[\checkmark]$ Support multi-line (complex-mode)
     - $[\text{X}]$ Automatic new line insertion
     - $[\text{X}]$ Selectable for copy
-    - $[\text{X}]$ Select through $\textit{`tab'}$
+    - $[\checkmark]$ Select through $\textit{`tab'}$
 
 - Limitations:
 
@@ -93,8 +97,8 @@ Button_push:
 
 - Functionality:
     - $[\checkmark]$ Accept function to execute
-    - $[\text{X}]$ Select through $\textit{`tab'}$
-    - $[\text{X}]$ Activate with $\textit{`enter'}$
+    - $[\checkmark]$ Select through $\textit{`tab'}$
+    - $[\checkmark]$ Activate with $\textit{`enter'}$
 
 Button_toggle:
 --
@@ -112,8 +116,8 @@ Button_toggle:
         - $[\text{X}]$ Switch mode
 
 - Functionality:
-    - $[\text{X}]$ Select through $\textit{`tab'}$
-    - $[\text{X}]$ Activate with $\textit{`enter'}$
+    - $[\checkmark]$ Select through $\textit{`tab'}$
+    - $[\checkmark]$ Activate with $\textit{`enter'}$
 
 Multi_button:
 --

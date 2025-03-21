@@ -22,21 +22,21 @@ def build_dev_scene(app: 'App') -> 'App':
     app.UI["debug2"] = Container("50vw 5px", "0vh 10px", "50vw -15px", "66.6vh -15px", None, performant=1, scrollable=True)
     app.UI["debug3"] = Container("50vw 5px", "66.6vh 5px", "50vw -15px", "33.3vh -15px", None, performant=1)
 
-    app.UI["debug2"].add_element("debugger", Collapse_Window("50cw", "0ch 5px", "100cw -10px", "20ch", "center-up", title="Collapsable 1", performant=1))
-    app.UI["debug2"].add_element("debugger2", Collapse_Window("0px", "0px", "100cw -10px", "20ch", "center-up", title="Collapsable 2", performant=1))
+    app.UI["debug2"].add_element("debugger", Collapse_Window("2cw", "0ch 5px", "95cw -10px", "20ch", "left-up", title="Collapsable 1", performant=1))
+    app.UI["debug2"].add_element("debugger2", Collapse_Window("0px", "0px", "95cw -10px", "20ch", "center-up", title="Collapsable 2", performant=1))
     app.UI["debug2"].child_elements["debugger2"].set_parent(app.UI["debug2"].child_elements["debugger"], "center-down", "0px", "5px")
     
-    app.UI["debug2"].add_element("prova", Button_push("0px", "0px", "10cw", "10cw", "left-up", performant=1))
+    app.UI["debug2"].add_element("prova", Button_push("0px", "0px", "10cw", "10cw", "left-up", performant=1, callback=lambda: print("Hello world!")))
     app.UI["debug2"].child_elements["prova"].set_parent(app.UI["debug2"].child_elements["debugger2"], "left-down", "0px", "2.5cw")
 
-    app.UI["debug2"].add_element("debugger3", Collapse_Window("0px", "0px", "100cw -10px", "20ch", "left-up", title="Collapsable 3", performant=1))
+    app.UI["debug2"].add_element("debugger3", Collapse_Window("0px", "0px", "95cw -10px", "20ch", "left-up", title="Collapsable 3", performant=1))
     app.UI["debug2"].child_elements["debugger3"].set_parent(app.UI["debug2"].child_elements["prova"], "left-down", "0px", "2.5cw")
-    app.UI["debug2"].add_element("debugger4", Collapse_Window("0px", "0px", "100cw -10px", "20ch", "center-up", title="Collapsable 4", performant=1))
+    app.UI["debug2"].add_element("debugger4", Collapse_Window("0px", "0px", "95cw -10px", "20ch", "center-up", title="Collapsable 4", performant=1))
     app.UI["debug2"].child_elements["debugger4"].set_parent(app.UI["debug2"].child_elements["debugger3"], "center-down", "0px", "5px")
     
-    app.UI["debug2"].add_element("debugger5", Collapse_Window("0px", "0px", "100cw -10px", "20ch", "left-up", title="Collapsable 4", performant=1))
+    app.UI["debug2"].add_element("debugger5", Collapse_Window("0px", "0px", "95cw -10px", "20ch", "left-up", title="Collapsable 4", performant=1))
     app.UI["debug2"].child_elements["debugger5"].set_parent(app.UI["debug2"].child_elements["debugger4"], "left-down", "0px", "2.5cw")
-    app.UI["debug2"].add_element("debugger6", Collapse_Window("0px", "0px", "100cw -10px", "20ch", "center-up", title="Collapsable 5", performant=1))
+    app.UI["debug2"].add_element("debugger6", Collapse_Window("0px", "0px", "95cw -10px", "20ch", "center-up", title="Collapsable 5", performant=1))
     app.UI["debug2"].child_elements["debugger6"].set_parent(app.UI["debug2"].child_elements["debugger5"], "center-down", "0px", "5px")
 
 

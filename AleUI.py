@@ -7,8 +7,6 @@ from pygame.locals import DOUBLEBUF, RESIZABLE, FULLSCREEN
 import numpy as np
 import ctypes
 
-from copy import deepcopy
-
 from UI_ELEMENTS.shapes import RectAle, LineAle, CircleAle, SurfaceAle
 from UI_ELEMENTS.event_tracker import EventTracker
 
@@ -68,7 +66,7 @@ class App:
         self.sizes.w_viewport, self.sizes.h_viewport = self.sizes.w_screen * 0.9, self.sizes.h_screen * 0.9
 
         # Window generation
-        self.root_window = pygame.display.set_mode((self.sizes.w_viewport, self.sizes.h_viewport), DOUBLEBUF | RESIZABLE)
+        self.root_window = pygame.display.set_mode((self.sizes.w_viewport, self.sizes.h_viewport), DOUBLEBUF | RESIZABLE | pygame.HWSURFACE)
 
 
     def close(self):
@@ -110,7 +108,7 @@ class App:
 
         for key, single_render_buffer in self.render_buffer.items():
             # color the background of containers
-            self.UI[key].clip_canvas.fill((30, 30, 30))
+            self.UI[key].clip_canvas.fill(self.UI[key].bg)
             
             for object in single_render_buffer:
 
@@ -131,8 +129,11 @@ class App:
                 
                 elif type(object) == SurfaceAle:
                     self.UI[key].clip_canvas.blit(**attributes)
-                    
-            self.root_window.blit(self.UI[key].clip_canvas, (self.UI[key].x.value, self.UI[key].y.value))
+
+            def blit_partial_surfaces(): 
+                '''Function made purely to monitor blit performances.'''       
+                self.root_window.blit(self.UI[key].clip_canvas, (self.UI[key].x.value, self.UI[key].y.value))
+            blit_partial_surfaces()
 
         self.render_buffer = {}
 

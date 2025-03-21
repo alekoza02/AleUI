@@ -69,18 +69,27 @@ class Collapse_Window(BaseElementUI):
             # handle self components events
             [element.handle_events(events) for index, element in self.componenets.items()]
 
-            # check for open / close the window
-            old_h = self.h.lst_str_value
-            if self.componenets["toggle"].get_state():
-                self.h.change_str_value(self.h_closed)
-            else:
-                self.h.change_str_value(self.h_opened)
-            
-            # request for update open / close call
-            if old_h != self.h.lst_str_value:
-                if not self.parent_object is None:
-                    self.parent_object.analyze_coordinate()
+            self.update_open_closure()
 
             # handle child events
             if self.componenets["toggle"].get_state():
                 [element.handle_events(events) for index, element in self.child_elements.items()]
+
+    
+    def update_open_closure(self):
+        # check for open / close the window
+        old_h = self.h.lst_str_value
+        if self.componenets["toggle"].get_state():
+            self.h.change_str_value(self.h_closed)
+        else:
+            self.h.change_str_value(self.h_opened)
+        
+        # request for update open / close call
+        if old_h != self.h.lst_str_value:
+            if not self.parent_object is None:
+                self.parent_object.analyze_coordinate()
+
+
+    def launch_tab_action(self):
+        self.componenets["toggle"].change_state()
+        self.update_open_closure()

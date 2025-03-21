@@ -29,9 +29,7 @@ class Button_toggle(BaseElementUI):
             for event in events:
                 if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                     if self.bounding_box.collidepoint(tracker.local_mouse_pos[-1]):
-                        self.toggled = not self.toggled
-                        if self.toggled: self.shape.change_shape_color("active", [100, 100, 100])
-                        else: self.shape.change_shape_color("active", self.shape.shapes["bg"].color)
+                        self.change_state()
 
             # Hover block #
             if self.bounding_box.collidepoint(tracker.local_mouse_pos[-1]):
@@ -49,3 +47,13 @@ class Button_toggle(BaseElementUI):
                 self.shape.shapes["active"].color -= 10
                 self.shape.shapes["bg"].color -= 10
             # Hover block #
+
+
+    def change_state(self):
+        self.toggled = not self.toggled
+        if self.toggled: self.shape.change_shape_color("active", [100, 100, 100])
+        else: self.shape.change_shape_color("active", self.shape.shapes["bg"].color)
+
+
+    def launch_tab_action(self):
+        self.change_state()

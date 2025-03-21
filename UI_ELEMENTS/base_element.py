@@ -36,6 +36,7 @@ class BaseElementUI:
         self.anchor_mode = 'absolute'
 
         self.shape: ComplexShape = ComplexShape()
+        self.shape.add_shape("_highlight", RectAle("0cw -1px", "0ch -1px", "100cw 2px", "100ch 2px", [100, 100, 100], 1, 2))
         self.bounding_box: pygame.Rect = pygame.Rect(self.x.value, self.y.value, self.w.value, self.h.value)
 
         self.is_hover = False
@@ -44,6 +45,7 @@ class BaseElementUI:
         self.parent_object: None | BaseElementUI = None
 
         self.is_enabled = True
+        self.is_highlighted = False
         self.commands_stack = {}
 
 
@@ -128,10 +130,17 @@ class BaseElementUI:
 
     def get_render_objects(self):
         if self.is_enabled:
-            return self.shape.get_shapes()
+            output_shapes = self.shape.get_shapes()
+
+            # removes the _highlight element, which by initialization is always the first one to be created
+            if not self.is_highlighted: output_shapes.pop(0) 
+            return output_shapes
         else:
             return []
         
 
     def handle_events(self, events):
+        ...
+
+    def launch_tab_action(self):
         ...

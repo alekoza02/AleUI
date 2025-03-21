@@ -43,3 +43,6 @@ class Button_push(BaseElementUI):
             elif not self.is_hover and self.is_hover != self.is_hover_old:
                 self.shape.shapes["bg"].color -= 10
             # Hover block #
+
+    def launch_tab_action(self):
+        self.callback()
