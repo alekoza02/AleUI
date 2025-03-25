@@ -1,6 +1,9 @@
 from UI_ELEMENTS.base_element import BaseElementUI
 from UI_ELEMENTS.shapes import RectAle, LineAle, CircleAle
 from UI_ELEMENTS.event_tracker import EventTracker
+from UI_ELEMENTS.element_text_label import Label_text
+from UI_ELEMENTS.element_button_push import Button_push
+from UI_ELEMENTS.element_button_toggle import Button_toggle
 from UI_ELEMENTS.element_scrollbar import ScrollBar
 from UI_ELEMENTS.element_collapse_window import Collapse_Window
 import pygame
@@ -15,6 +18,7 @@ class Container(BaseElementUI):
     def __init__(self, x, y, w, h, achor=None, performant=False, scrollable=False):
         super().__init__(x, y, w, h, achor, performant)
 
+        self.depth_level = 1
         self.bg = (30, 30, 30)
 
         self.scrollable = scrollable
@@ -28,11 +32,9 @@ class Container(BaseElementUI):
 
         self.clip_canvas = pygame.Surface((self.w.value, self.h.value))
         
-        self.child_elements: dict[str, BaseElementUI] = {}
-        self.child_indices: list[str] = []
-
+        self.has_child_or_components = True
         self.use_tab_for_selection = True                           # TODO: give the possibility to disable this function (For example in containers with only viewports)
-        self.element_selected = -1
+
 
 
     @property
@@ -48,9 +50,10 @@ class Container(BaseElementUI):
 
 
     def add_element(self, name, element):
-        self.child_indices.append(name)
         self.child_elements[name] = element
         self.child_elements[name].parent_object = self
+        self.child_elements[name].name = name
+        self.child_elements[name].depth_level = self.depth_level + 1
 
 
     def analyze_coordinate(self):
@@ -128,57 +131,37 @@ class Container(BaseElementUI):
         return ris
     
 
-    def highlight_child_element(self, key):
-        for name, value in self.child_elements.items():
-            value.is_highlighted = key == name
-
-
-    def execute_child_element(self, key):
-        self.child_elements[key].launch_tab_action()
-
-
     def handle_events(self, events):
         tracker = EventTracker()
+        # calculates the local position of the mouse relative to the container
+        tracker.local_mouse_pos.append(np.subtract(tracker.mouse_pos, np.array([self.x.value, self.y.value])))
+
 
         # tab for switching active element block
         if self.bounding_box.collidepoint(tracker.mouse_pos):
             self.bg = [35, 35, 35]
             
-            if len(self.child_indices) > 0:
-
-                # Stato di tutti i tasti
-                keys = pygame.key.get_pressed()
-
-                for event in events:
-                    if event.type == pygame.KEYDOWN and event.key == pygame.K_TAB:
-                        
-                        if keys[pygame.K_LSHIFT]:
-                            # go to previous
-                            if self.element_selected == 0:
-                                self.element_selected = len(self.child_indices) - 1
-                            else:
-                                self.element_selected -= 1
-                        else:
-                            # go to next
-                            if self.element_selected + 1 == len(self.child_indices):
-                                self.element_selected = 0
-                            else:
-                                self.element_selected += 1
-
-
-                        self.highlight_child_element(self.child_indices[self.element_selected])
-
-                    if event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
-                        self.execute_child_element(self.child_indices[self.element_selected])
+            if len(self.total_children) > 0:
+                self._event_handle_select_highlight_movements(events)
 
         else:
-            self.element_selected = -1
-            self.highlight_child_element(None)
             self.bg = [30, 30, 30]
+            self._event_reset_tab_movements()    
 
-        # calculates the local position of the mouse relative to the container
-        tracker.local_mouse_pos.append(np.subtract(tracker.mouse_pos, np.array([self.x.value, self.y.value])))
 
+        self._event_handle_scroll(events, tracker)
+
+        # store previous state of all elements that may change their size
+        old_states = [child.componenets["_toggle"].get_state() for name, child in self.child_elements.items() if type(child) == Collapse_Window]
+        self._event_handle_children(events)
+        self._event_check_elements_for_difference_in_height(old_states)
+        
+
+######################################################################################################
+# EVENT ZONE
+######################################################################################################
+
+    def _event_handle_scroll(self, events, tracker):
         # handle scroll (if enabled)
         if self.scrollable:
 
@@ -202,13 +185,13 @@ class Container(BaseElementUI):
                 self.analyze_coordinate()
 
 
-        # store previous state of all elements that may change their size
-        old_states = [child.componenets["toggle"].get_state() for name, child in self.child_elements.items() if type(child) == Collapse_Window]
-
+    def _event_handle_children(self, events):
         # handle child events
         [element.handle_events(events) for index, element in self.child_elements.items()]
-        
-        new_state = [child.componenets["toggle"].get_state() for name, child in self.child_elements.items() if type(child) == Collapse_Window]
+
+
+    def _event_check_elements_for_difference_in_height(self, old_states):
+        new_state = [child.componenets["_toggle"].get_state() for name, child in self.child_elements.items() if type(child) == Collapse_Window]
 
         update = False
         for o, n in zip(old_states, new_state):

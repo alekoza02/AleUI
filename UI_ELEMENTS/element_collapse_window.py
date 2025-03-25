@@ -9,23 +9,44 @@ class Collapse_Window(BaseElementUI):
     def __init__(self, x, y, w, h, achor=None, title="Collapsable window", performant=False):
         super().__init__(x, y, w, h, achor, performant)
 
-        self.child_elements: dict[str, BaseElementUI] = {}
+        self.has_child_or_components = True
+
+        self.use_tab_for_selection = True                           # TODO: give the possibility to disable this function (For example in containers with only viewports)
+        
         self.shape.add_shape("bg", RectAle("0cw", "0ch", "100cw", "100ch", [20, 20, 20], 0, 2))
         self.componenets: dict[str, Label_text | Button_toggle] = {
-            "toggle" : Button_toggle("1vw", "1vh", "2.5cw", "2.5cw", "lu"),
-            "title" : Label_text("2vw 2.5cw", "1vh", "30cw", "2.5cw", "lu", text=title, text_centered_x=False, text_tag_support=False, render_bg=False)
+            "_toggle" : Button_toggle("1vw", "1vh", "2.5cw", "2.5cw", "lu"),
+            "_title" : Label_text("2vw 2.5cw", "1vh", "30cw", "2.5cw", "lu", text=title, text_centered_x=False, text_tag_support=False, render_bg=False)
         }
 
         for key, value in self.componenets.items():
             value.parent_object = self
 
+        self.child_elements: dict[str, BaseElementUI] = {}
+        self.child_indices: list[str] = []
+
         self.h_closed = h
         self.h_opened = "2vh 2.5cw"
+
+
+    @property
+    def total_children(self):
+        ris = {**self.componenets, **self.child_elements}
+        ris.pop("_title")
+        return ris
+
+    
+    @property
+    def total_children_indices(self):
+        ris = [key for key in self.total_children.keys() if key != "_title"]
+        return ris
 
 
     def add_element(self, name, element):
         self.child_elements[name] = element
         self.child_elements[name].parent_object = self
+        self.child_elements[name].name = name
+        self.child_elements[name].depth_level = self.depth_level + 1
 
 
     def analyze_coordinate(self, offset_x=0, offset_y=0):
@@ -55,7 +76,7 @@ class Collapse_Window(BaseElementUI):
                 ris.extend(obj.get_render_objects())
 
             # adds childrens
-            if self.componenets["toggle"].get_state():
+            if self.componenets["_toggle"].get_state():
                 for name, obj in self.child_elements.items():
                     ris.extend(obj.get_render_objects())
                 
@@ -72,14 +93,14 @@ class Collapse_Window(BaseElementUI):
             self.update_open_closure()
 
             # handle child events
-            if self.componenets["toggle"].get_state():
+            if self.componenets["_toggle"].get_state():
                 [element.handle_events(events) for index, element in self.child_elements.items()]
 
     
     def update_open_closure(self):
         # check for open / close the window
         old_h = self.h.lst_str_value
-        if self.componenets["toggle"].get_state():
+        if self.componenets["_toggle"].get_state():
             self.h.change_str_value(self.h_closed)
         else:
             self.h.change_str_value(self.h_opened)
@@ -88,8 +109,3 @@ class Collapse_Window(BaseElementUI):
         if old_h != self.h.lst_str_value:
             if not self.parent_object is None:
                 self.parent_object.analyze_coordinate()
-
-
-    def launch_tab_action(self):
-        self.componenets["toggle"].change_state()
-        self.update_open_closure()

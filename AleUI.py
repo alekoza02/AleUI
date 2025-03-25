@@ -39,7 +39,7 @@ class App:
         self.sizes = AppSizes()
 
 
-    def launch(self):
+    def launch(self, program_name="AleUI"):
         '''
         Starting the program, initializes the root window.
         '''
@@ -68,6 +68,15 @@ class App:
         # Window generation
         self.root_window = pygame.display.set_mode((self.sizes.w_viewport, self.sizes.h_viewport), DOUBLEBUF | RESIZABLE | pygame.HWSURFACE)
 
+        # Cosmetics of the windows bar
+        pygame.display.set_icon(pygame.image.load("TEXTURES/desktopp.ico"))  # Carica un'icona personalizzata
+        pygame.display.set_caption(program_name)  # Cambia il titolo della finestra
+
+        hwnd = pygame.display.get_wm_info()["window"]
+        value = 1  # 0 = chiaro, 1 = scuro
+        ctypes.windll.dwmapi.DwmSetWindowAttribute(hwnd, 20, ctypes.byref(ctypes.c_int(value)), 4)
+
+        
 
     def close(self):
         self.running = False

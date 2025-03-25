@@ -175,6 +175,9 @@ class Label_text(BaseElementUI):
         self.update_text()
 
 
+    def launch_tab_action(self):
+        print(f"{self.text = }")
+
 
 class SubStringa:
     def __init__(self, colore, bold, italic, apice, pedice, highlight, testo) -> None:

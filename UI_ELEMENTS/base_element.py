@@ -39,6 +39,13 @@ class BaseElementUI:
         self.shape.add_shape("_highlight", RectAle("0cw -1px", "0ch -1px", "100cw 2px", "100ch 2px", [100, 100, 100], 1, 2))
         self.bounding_box: pygame.Rect = pygame.Rect(self.x.value, self.y.value, self.w.value, self.h.value)
 
+        self.componenets: dict[str, BaseElementUI] = {}     # this attribute determines if an element has other elements for its working
+        self.child_elements: dict[str, BaseElementUI] = {}     # this attribute determines if an element has child elements
+
+        self.has_child_or_components = False
+        self.element_highlighted = None
+        self.element_selected = None
+
         self.is_hover = False
         self.is_hover_old = False
 
@@ -46,7 +53,21 @@ class BaseElementUI:
 
         self.is_enabled = True
         self.is_highlighted = False
+        self.is_selected = False
         self.commands_stack = {}
+
+
+        self.depth_level = None
+
+
+    @property
+    def total_children(self):
+        return {**self.componenets, **self.child_elements}
+
+    
+    @property
+    def total_children_indices(self):
+        return [key for key in self.total_children.keys()]
 
 
     def ask_enable_disable_element(self, enable: bool=True, priority: int=1):
@@ -133,7 +154,18 @@ class BaseElementUI:
             output_shapes = self.shape.get_shapes()
 
             # removes the _highlight element, which by initialization is always the first one to be created
-            if not self.is_highlighted: output_shapes.pop(0) 
+            if not (self.is_highlighted or self.is_selected): 
+                output_shapes.pop(0) 
+            
+            # sets the color of the selection
+            elif self.is_selected: 
+                output_shapes[0].color = [200, 150, 100]
+
+            # sets the color of the highligh
+            elif self.is_highlighted: 
+                # print(f"{self = }")
+                output_shapes[0].color = [100, 100, 100]
+
             return output_shapes
         else:
             return []
@@ -144,3 +176,142 @@ class BaseElementUI:
 
     def launch_tab_action(self):
         ...
+
+
+    # -------------------------------------------------------------------------------------------------------------------------
+    # REGION OF RECURSIVE CHILDREN ELEMENTS
+    # -------------------------------------------------------------------------------------------------------------------------
+    
+    def get_highlighted_element(self) -> 'BaseElementUI':
+        return self.total_children[self.total_children_indices[self.element_highlighted]]
+        
+    def get_highlighted_element_index(self) -> str:
+        return self.total_children_indices[self.element_highlighted]
+
+
+    def _event_handle_select_highlight_movements(self, events):
+
+        # Stato di tutti i tasti
+        keys = pygame.key.get_pressed()
+    
+        for event in events:
+            # MOVE WITH TAB & SHIFT + TAB
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_TAB: 
+
+                # always initialized to None, this is the inizialization of the first element
+                if self.element_highlighted is None:
+                    self.element_highlighted = -1
+
+                # find the highlighted element
+                highlighted_child = self.get_highlighted_element()
+                
+                # if the child is selected
+                if highlighted_child.is_selected:
+                    # if the child doesn't have other children
+                    if not highlighted_child.has_child_or_components:
+                        # removes selection (just in case) and moves to the next element and highlights
+                        self._event_remove_selection()
+                        self.highlight_next_element(keys)
+                    # if the child has other children
+                    else:
+                        # calls the same funcion on the child
+                        highlighted_child._event_handle_select_highlight_movements(events)
+                # if the child is NOT selected
+                else:
+                    # highlights the next element
+                    self.highlight_next_element(keys)
+
+
+            # SELECT OR EXECUTE WITH ENTER
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
+
+                if not self.element_highlighted is None:
+                    
+                    highlighted_child = self.get_highlighted_element()
+                    
+                    if highlighted_child.is_selected:
+                        if highlighted_child.has_child_or_components:
+                            highlighted_child._event_handle_select_highlight_movements(events)
+                        else:
+                            # executes default behaviour (unique for each class)
+                            self._event_execute_child_element(self.get_highlighted_element_index())
+                    else:
+                        # selects the element
+                        highlighted_child.is_selected = True
+                        # if the element has childs puts the highlight on the first one
+                        if highlighted_child.has_child_or_components:
+                            list(highlighted_child.total_children.values())[0].is_highlighted = True
+                            highlighted_child.element_highlighted = 0
+                
+
+            # DESELECT WITH ESCAPE
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+
+                if not self.element_highlighted is None:
+
+                    highlighted_child = self.get_highlighted_element()
+                    
+                    if highlighted_child.is_selected:
+                        if highlighted_child.has_child_or_components:
+                            # checks if there's at least one child selected 
+                            check_if_exist_selected = [item.is_selected for item in list(highlighted_child.total_children.values())]
+                            if sum(check_if_exist_selected) > 0:
+                                highlighted_child._event_handle_select_highlight_movements(events)
+                            else:
+                                # if there's no selected, removes the highlight and selection
+                                self._event_remove_selection()
+                                for key, element in highlighted_child.total_children.items():
+                                    element.is_highlighted = False
+                        else:
+                            self._event_remove_selection()
+                    
+                    else:
+                        highlighted_child.is_highlighted = False
+                        self.element_highlighted = None
+                        
+
+    def _event_execute_child_element(self, key):
+        self.total_children[key].is_selected = True
+        self.total_children[key].is_highlighted = True
+        self.total_children[key].launch_tab_action()
+
+
+    def _event_highlight_child_element(self, key):
+        for name, value in self.total_children.items():
+            value.is_highlighted = key == name
+
+
+    def _event_reset_tab_movements(self):
+        if self.has_child_or_components:
+            for key, value in self.total_children.items():
+                value._event_reset_tab_movements()
+        
+        self.is_highlighted = False
+        self.is_selected = False
+        self.element_highlighted = None
+        self.element_selected = None
+
+
+    def _event_remove_selection(self):
+        if not self.element_highlighted is None:
+            highlighted_child = self.get_highlighted_element()
+                
+            if highlighted_child.is_selected:
+                highlighted_child.is_selected = False
+
+
+    def highlight_next_element(self, keys):
+        if keys[pygame.K_LSHIFT]:
+            # go to previous
+            if self.element_highlighted == 0:
+                self.element_highlighted = len(self.total_children) - 1
+            else:
+                self.element_highlighted -= 1
+        else:
+            # go to next
+            if self.element_highlighted + 1 == len(self.total_children):
+                self.element_highlighted = 0
+            else:
+                self.element_highlighted += 1
+
+        self._event_highlight_child_element(self.get_highlighted_element_index())
