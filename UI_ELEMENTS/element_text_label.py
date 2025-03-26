@@ -2,6 +2,7 @@ from UI_ELEMENTS.base_element import BaseElementUI
 from UI_ELEMENTS.shapes import RectAle, LineAle, CircleAle, SurfaceAle
 from UI_ELEMENTS.font import Font
 from MATH.utils import MateUtils 
+from AleUI import AppSizes
 
 from DATABASE.symbols import Dizionario
 diction = Dizionario()
@@ -11,7 +12,15 @@ if DO_NOT_EXECUTE:
     import pygame
 
 class Label_text(BaseElementUI):
-    def __init__(self, x, y, w, h, origin=None, text="Prova\\^{Passa}\\_{\\i{w\\#dc143c{o}w}}\nCannot believe it!", use_latex_font=False, text_centered_x=True, text_centered_y=True, text_tag_support=True, render_bg=True, performant=False):
+    def __init__(self, x, y, w, h, origin=None, text="Prova\\^{Passa}\\_{\\i{w\\#dc143c{o}w}}\nCannot believe it!", use_latex_font=False, text_centered_x=True, text_centered_y=True, text_tag_support=True, render_bg=True, performant=False, fixed_number_of_chars=0):
+        
+        size = AppSizes()
+        self.font = Font(size.h_screen * 0.011 * 1.165 - 0.4, use_latex_font)            # advised 15 for 1920x1080 and 24 for 2880x1800
+        
+        if fixed_number_of_chars > 0:
+            size_x = self.font.font_pixel_dim[0] * fixed_number_of_chars
+            w = f"{size_x}px"
+
         super().__init__(x, y, w, h, origin, performant)
 
         # shape
@@ -28,7 +37,12 @@ class Label_text(BaseElementUI):
         self.text_vertical = False          # Decides if the text is rendered vertical or not
         self.text_diplayed = ["", 0]        # [longest text line found, number of lines]
         self.text_tag_support = text_tag_support        # Decides if the text supports tags
-        self.font = Font(24, use_latex_font)
+        
+        self.update_text()
+
+
+    def change_text(self, str):
+        self.text = str
         self.update_text()
 
 
@@ -106,11 +120,20 @@ class Label_text(BaseElementUI):
 
                     ''' RENDER BLOCK '''
                     def add_text_to_render_pipe(pre_rotation, position):
+
+                        x_offset, y_offset = 0, 0
+                        if self.text_centered_y:
+                            y_offset = half_pos_y - pre_rotation.get_height() / 2
+
+                        if self.text_centered_x:
+                            x_offset = half_pos_x - pre_rotation.get_width() / 2
+
+
                         if self.text_vertical:
                             pre_rotation = pygame.transform.rotate(pre_rotation, 90)
-                            self.shape.shapes["text_surface"].blit(pre_rotation, (position[1], position[0]))
+                            self.shape.shapes["text_surface"].blit(pre_rotation, (position[1] + y_offset, position[0] + x_offset))
                         else:
-                            self.shape.shapes["text_surface"].blit(pre_rotation, (position[0], position[1]))
+                            self.shape.shapes["text_surface"].blit(pre_rotation, (position[0] + x_offset, position[1] + y_offset))
 
 
                     if substringa_analizzata.highlight and not self.font.latex_font:
@@ -177,6 +200,10 @@ class Label_text(BaseElementUI):
 
     def launch_tab_action(self):
         print(f"{self.text = }")
+
+
+    def __repr__(self):
+        return f"Label_text: {self.text_diplayed}, {self.x.value, self.y.value, self.w.value, self.h.value}"
 
 
 class SubStringa:

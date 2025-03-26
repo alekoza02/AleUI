@@ -6,21 +6,31 @@ if not DO_NOT_EXECUTE:
     import pygame
     from pygame.event import Event
     from UI_ELEMENTS.event_tracker import EventTracker
+    from UI_ELEMENTS.element_text_label import Label_text
 
 
 class Button_push(BaseElementUI):
-    def __init__(self, x, y, w, h, origin=None, performant=False, callback=None):
+    def __init__(self, x, y, w, h, origin=None, title="click me", performant=False, callback=None):
         super().__init__(x, y, w, h, origin, performant)
 
         if callback is None:
             callback = lambda: 1
         self.callback = callback
         self.shape.add_shape("bg", RectAle("0cw", "0ch", "100cw", "100ch", [40, 40, 40], 0, 0))
+        self.componenets: dict[str, Label_text] = {
+            "_title" : Label_text("50cw", "50ch", "100cw", "100ch", "center-center", text=title, text_tag_support=False, render_bg=False)
+        }
 
+        for key, value in self.componenets.items():
+            value.parent_object = self
+        
 
     def handle_events(self, events: list['Event']):
-
+            
         if self.is_enabled:
+            # handle self components events
+            [element.handle_events(events) for index, element in self.componenets.items()]
+
             # get the latest events and relative positions
             tracker = EventTracker()
 
@@ -47,3 +57,28 @@ class Button_push(BaseElementUI):
 
     def launch_tab_action(self):
         self.callback()
+
+    
+    def analyze_coordinate(self, offset_x=0, offset_y=0):
+        super().analyze_coordinate(offset_x, offset_y)
+    
+        for name, child in self.componenets.items():
+            child.analyze_coordinate(self.x.value, self.y.value)
+
+
+    def get_render_objects(self):
+        if self.is_enabled:
+            ris = []
+            
+            # adds himself
+            ris.extend(super().get_render_objects())
+            for name, obj in self.componenets.items():            
+                ris.extend(obj.get_render_objects())
+
+            return ris
+        else:
+            return []
+        
+
+    def __repr__(self):
+        return "Button_push"

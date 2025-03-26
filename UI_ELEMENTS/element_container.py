@@ -108,7 +108,8 @@ class Container(BaseElementUI):
 
     def analyze_children_outside_BB(self):
         for name, child in self.child_elements.items():
-            if child.y.value + child.h.value > self.y.value and child.y.value < self.y.value + self.h.value:
+
+            if child.y.value + child.h.value >= 0 and child.y.value <= self.y.value + self.h.value:
                 child.ask_enable_disable_element(True, 1)
             else:
                 child.ask_enable_disable_element(False, 1)

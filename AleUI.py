@@ -6,9 +6,13 @@ import pygame
 from pygame.locals import DOUBLEBUF, RESIZABLE, FULLSCREEN
 import numpy as np
 import ctypes
+import ctypes.wintypes
+import psutil
+from time import strftime
 
 from UI_ELEMENTS.shapes import RectAle, LineAle, CircleAle, SurfaceAle
 from UI_ELEMENTS.event_tracker import EventTracker
+from UI_ELEMENTS.CPU_data import CPU_performance
 
 DO_NOT_EXECUTE = False
 if DO_NOT_EXECUTE:
@@ -37,6 +41,16 @@ class App:
         self.UI: dict[str, Container] = {}
         self.render_buffer: dict[str, list[BaseElementUI]] = {}
         self.sizes = AppSizes()
+
+        self.CPU_statistic = [0 for _ in range(300)] 
+        self.CPU_usage = CPU_performance()
+        self.CPU_start_time = 0
+        self.CPU_end_time = 0
+        self.CPU: str = ""
+        self.MEMORY: str = ""
+        self.TIME: str = ""
+        self.FPS: str = ""
+        self.BATTERY: str = ""
 
 
     def launch(self, program_name="AleUI"):
@@ -83,8 +97,9 @@ class App:
 
 
     def update(self):
-        pygame.display.set_caption(f"FPS: {self.clock.get_fps():.2f}")
+        self.current_fps = self.clock.get_fps()
         
+        self.update_pc_attributes()
         self.get_events()
         self.render()
 
@@ -186,3 +201,92 @@ class App:
             self.update_coords_UI_elements()
             
         self.fullscreen = not self.fullscreen
+
+
+    def update_pc_attributes(self):
+        
+        valore = self.CPU_usage.get_usage()
+        if not valore is None:
+            self.CPU_statistic.pop(0)    
+            self.CPU_statistic.append(valore)    
+ 
+        if self.CPU_start_time == 0:
+            self.CPU_start_time = pygame.time.get_ticks()
+        self.CPU_end_time = pygame.time.get_ticks() 
+            
+        elapsed_time = self.CPU_end_time - self.CPU_start_time
+
+        if elapsed_time > 500:
+
+            self.MEMORY = f' Memory: {psutil.Process().memory_info().rss / 1024**2:>7.2f} MB' 
+            
+            if psutil.Process().memory_info().rss / 1024**2 > 4000:
+                self.MEMORY = r"\#dc143c{" + self.MEMORY.testo + "}"
+            
+            # -----------------------------------------------------------------------------
+            
+            self.CPU_start_time = 0
+            self.CPU_end_time = 0
+
+            self.CPU = f" CPU: {sum(self.CPU_statistic) / len(self.CPU_statistic):>3.0f}%"
+
+            if sum(self.CPU_statistic) / len(self.CPU_statistic) > 30 and sum(self.CPU_statistic) / len(self.CPU_statistic) <= 70:
+                self.CPU = r"\#ffdd60{" + self.CPU + "}"
+
+            if sum(self.CPU_statistic) / len(self.CPU_statistic) > 70:
+                self.CPU = r"\#dc143c{" + self.CPU + "}"
+
+            # -----------------------------------------------------------------------------
+        
+            self.FPS = f"FPS: {self.current_fps:>6.2f}" 
+            
+            if self.current_fps < 60 and self.current_fps >= 24:
+                self.FPS = r"\#ffdd60{" + self.FPS + "}"
+
+            if self.current_fps < 24:
+                self.FPS = r"\#dc143c{" + self.FPS + "}"
+        
+            # -----------------------------------------------------------------------------
+        
+            self.TIME = f" {strftime("%X, %x")}"
+
+            # -----------------------------------------------------------------------------
+
+            battery = psutil.sensors_battery()
+
+            if battery:
+                
+                simbolo_corretto = ""
+                caso_simbolo = battery.percent // 10
+                
+                match caso_simbolo:
+                    case 0: simbolo_corretto = "󰢟" if battery.power_plugged else "󰂎";   # 0%
+                    case 1: simbolo_corretto = "󰢜" if battery.power_plugged else "󰁺";   # 10%
+                    case 2: simbolo_corretto = "󰂆" if battery.power_plugged else "󰁻";   # 20%
+                    case 3: simbolo_corretto = "󰂇" if battery.power_plugged else "󰁼";   # 30%
+                    case 4: simbolo_corretto = "󰂈" if battery.power_plugged else "󰁽";   # 40%
+                    case 5: simbolo_corretto = "󰢝" if battery.power_plugged else "󰁾";   # 50%
+                    case 6: simbolo_corretto = "󰂉" if battery.power_plugged else "󰁿";   # 60%
+                    case 7: simbolo_corretto = "󰢞" if battery.power_plugged else "󰂀";   # 70%
+                    case 8: simbolo_corretto = "󰂊" if battery.power_plugged else "󰂁";   # 80%
+                    case 9: simbolo_corretto = "󰂋" if battery.power_plugged else "󰂂";   # 90%
+                    case 10: simbolo_corretto = "󰂅" if battery.power_plugged else "󰁹";  # 100%
+
+
+                self.BATTERY = f"{simbolo_corretto} {battery.percent:>3}%"
+
+                if battery.percent < 20 and battery.percent >= 10:
+                    self.BATTERY = r"\#ffdd60{" + self.BATTERY + "}"
+
+                if battery.percent < 10:
+                    self.BATTERY = r"\#dc143c{" + self.BATTERY + "}"
+
+            
+            try:
+                self.UI["STATS"].child_elements["CPU"].change_text(self.CPU)
+                self.UI["STATS"].child_elements["MEMORY"].change_text(self.MEMORY)
+                self.UI["STATS"].child_elements["FPS"].change_text(self.FPS)
+                self.UI["STATS"].child_elements["TIME"].change_text(self.TIME)
+                self.UI["STATS"].child_elements["BATTERY"].change_text(self.BATTERY)
+            except KeyError:
+                ...

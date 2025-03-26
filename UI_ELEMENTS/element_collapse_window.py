@@ -109,3 +109,7 @@ class Collapse_Window(BaseElementUI):
         if old_h != self.h.lst_str_value:
             if not self.parent_object is None:
                 self.parent_object.analyze_coordinate()
+
+
+    def __repr__(self):
+        return f"Collapsable: {self.componenets["_title"].text_diplayed}"
