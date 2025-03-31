@@ -17,7 +17,7 @@ class EventTracker:
             self.drag_start_pos = (0, 0)
             self.mouse_pos = (0, 0)
 
-            # list containing all the mouse positions relative to each container. Note that everytime we need to access this value it is enough to access the [-1], since at each cycle the list is reset and populated in order ov event handling
+            # list containing all the mouse positions relative to each container. Note that everytime we need to access this value it is enough to access the [-1], since at each cycle the list is reset and populated in order of event handling
             self.local_mouse_pos = []
             
             self.total_drag_distance = 0

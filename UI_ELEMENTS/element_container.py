@@ -29,6 +29,7 @@ class Container(BaseElementUI):
             self.scroll_speed = round(AppSizes().h_viewport / 50)  # sets the speed at which the elements move
             self.scroll_UI_element: ScrollBar = ScrollBar("98cw", "50ch", "1cw", "95ch", 'left-center', orientation='vertical')
             self.scroll_UI_element.parent_object = self
+            self.external_update = False                            # determines if the update is the scroll action in the container box (internal) or the action on the scroll element (external)
 
         self.clip_canvas = pygame.Surface((self.w.value, self.h.value))
         
@@ -73,15 +74,20 @@ class Container(BaseElementUI):
             # considers the scroll amount on independet elements
             # anchored elements will follow automatically
             if self.scrollable and child.anchor_mode == 'absolute':
-                offset_y += self.scroll_delta
+                if not self.external_update:
+                    offset_y += self.scroll_delta
+                else:
+                    offset_y = - self.scrolled * self.scrollable_distance
 
             child.analyze_coordinate(offset_x, offset_y)
 
         if self.scrollable:
-            # update the maximum excursion of the scrollable element
-            self.analyze_max_scroll_depth()
-            # change the size of the UI scroll indicator
-            self.scroll_UI_element.shape.shapes["indicator"].h.change_str_value(f"{min(abs((self.h.value - self.scrollable_distance) / self.h.value) * 100, 100)}ch")
+            if not self.external_update:
+                # update the maximum excursion of the scrollable element
+                self.analyze_max_scroll_depth()
+                # change the size of the UI scroll indicator
+                self.scroll_UI_element.shape.shapes["indicator"].h.change_str_value(f"{min(abs((self.h.value - self.scrollable_distance) / self.h.value) * 100, 100)}ch")
+            
             # change the position of the UI scroll indicator
             self.scroll_UI_element.shape.shapes["indicator"].y.change_str_value(f"{(100 - float(self.scroll_UI_element.shape.shapes["indicator"].h.lst_str_value[0][:-2])) * abs(self.scrolled)}ch")
             self.scroll_UI_element.analyze_coordinate()
@@ -170,6 +176,7 @@ class Container(BaseElementUI):
 
             old_scroll = self.scroll_update
             if self.bounding_box.collidepoint(tracker.mouse_pos) and tracker.scrolled != 0:
+                self.external_update = False
                 scrollato = tracker.get_scroll_info()
                 tracker.scrolled -= scrollato
                 self.scroll_update += scrollato
@@ -181,6 +188,12 @@ class Container(BaseElementUI):
                 # control to not overshoot (positive case)
                 if abs(self.scroll_delta) > abs(self.scrollable_distance):
                     self.scroll_update = - self.scrollable_distance / self.scroll_speed
+
+            if self.scroll_UI_element.delta_value != 0:
+                self.external_update = True
+                self.scrolled = self.scroll_UI_element.value
+                self.scroll_update = - self.scrolled * self.scrollable_distance / self.scroll_speed 
+                self.analyze_coordinate()
 
             if old_scroll != self.scroll_update:    
                 self.analyze_coordinate()

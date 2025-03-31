@@ -3,7 +3,6 @@ if __name__ == "__main__":
     from SCENES.debug import build_dev_scene
 
     PROFILATORE = 1
-    from time import perf_counter; start_time = perf_counter() 
 
     if PROFILATORE:
         import yappi
@@ -21,5 +20,3 @@ if __name__ == "__main__":
         yappi.stop()
         func_stats = yappi.get_func_stats()
         func_stats.save('profilatore.prof', type='pstat')    
-
-    print(f"Il programma è stato in esecuzione per {perf_counter() - start_time:.0f}s")
