@@ -57,8 +57,13 @@ class Container(BaseElementUI):
         self.child_elements[name].depth_level = self.depth_level + 1
 
 
+    def give_local_offset(self):
+        return self.local_offset
+
+
     def analyze_coordinate(self):
         super().analyze_coordinate()
+        self.local_offset = [self.x.value, self.y.value]
         self.clip_canvas = pygame.Surface((self.w.value, self.h.value))
 
         # if is scrollable update the scroll UI element
@@ -85,6 +90,8 @@ class Container(BaseElementUI):
             if not self.external_update:
                 # update the maximum excursion of the scrollable element
                 self.analyze_max_scroll_depth()
+                # update the self.scrolled value (internal)
+                self.scrolled = self.scroll_delta / self.scrollable_distance
                 # change the size of the UI scroll indicator
                 self.scroll_UI_element.shape.shapes["indicator"].h.change_str_value(f"{min(abs((self.h.value - self.scrollable_distance) / self.h.value) * 100, 100)}ch")
             
@@ -108,8 +115,6 @@ class Container(BaseElementUI):
         # Controls negative distances
         if self.scrollable_distance < 0:
             self.scrollable_distance = 1e-6
-        
-        self.scrolled = self.scroll_delta / self.scrollable_distance
 
 
     def analyze_children_outside_BB(self):
@@ -140,10 +145,7 @@ class Container(BaseElementUI):
 
     def handle_events(self, events):
         tracker = EventTracker()
-        # calculates the local position of the mouse relative to the container
-        tracker.local_mouse_pos.append(np.subtract(tracker.mouse_pos, np.array([self.x.value, self.y.value])))
-
-
+        
         # tab for switching active element block
         if self.bounding_box.collidepoint(tracker.mouse_pos):
             self.bg = [35, 35, 35]

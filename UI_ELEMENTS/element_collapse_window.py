@@ -42,6 +42,11 @@ class Collapse_Window(BaseElementUI):
         return ris
 
 
+    def give_local_offset(self):
+        # return the parents local offset, which for collapse window is the container window
+        return self.parent_object.local_offset
+
+
     def add_element(self, name, element):
         self.child_elements[name] = element
         self.child_elements[name].parent_object = self

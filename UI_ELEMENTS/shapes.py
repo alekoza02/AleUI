@@ -6,11 +6,13 @@ import numpy as np
 class ComplexShape:
     def __init__(self, is_opengl_object=False):
         self.shapes: dict[str, RectAle] = {}
+        self.shapes_active_map: dict[str, bool] = {}
         self.map_values: bool = is_opengl_object
 
 
     def add_shape(self, key, shape):
         self.shapes[key] = shape
+        self.shapes_active_map[key] = True
         if self.map_values:
             self.shapes[key].is_opengl = True
 
@@ -20,13 +22,21 @@ class ComplexShape:
             shape.update(new_x, new_y, new_w, new_h)
 
 
+    def change_shape_visibility(self, key, visibility):
+        self.shapes_active_map[key] = visibility
+
+
     def change_shape_color(self, key, color):
         self.shapes[key].color = np.array(color)
 
 
     def get_shapes(self):
-        return [element for key, element in self.shapes.items()]
+        return [i for booleano, i in zip(self.shapes_active_map.values(), self.shapes.values()) if booleano]
     
+    
+    def reset(self):
+        self.shapes: dict[str, RectAle] = {}
+        self.shapes_active_map: dict[str, bool] = {}
 
 
 class RectAle:
@@ -40,6 +50,17 @@ class RectAle:
         self.border_radius = border_radius
         self.rect = Rect(0, 0, 0, 0)
         self.is_opengl = False
+
+
+    def change_coordinates(self, x: str | None = None, y: str | None = None, w: str | None = None, h: str | None = None):
+        if not x is None:
+            self.x: SmartCoordinate = SmartCoordinate(x)
+        if not y is None:
+            self.y: SmartCoordinate = SmartCoordinate(y)
+        if not w is None:
+            self.w: SmartCoordinate = SmartCoordinate(w)
+        if not h is None:
+            self.h: SmartCoordinate = SmartCoordinate(h)
 
 
     def update(self, x_container, y_container, w_container, h_container):

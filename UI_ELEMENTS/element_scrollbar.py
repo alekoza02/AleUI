@@ -36,7 +36,7 @@ class ScrollBar(BaseElementUI):
         
             for event in events:
                 if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                    if self.bounding_box.collidepoint(tracker.local_mouse_pos[-1]):
+                    if self.bounding_box.collidepoint(tracker.get_local_mouse_pos(self.get_parent_local_offset())):
                         self.keep_updating = True
                 if event.type == pygame.MOUSEBUTTONUP and event.button == 1:
                     self.keep_updating = False
@@ -56,9 +56,9 @@ class ScrollBar(BaseElementUI):
                 old_value = self.value
 
                 if self.orientation == 'vertical':
-                    self.value = (tracker.local_mouse_pos[-1][1] - self.y.value) / self.h.value
+                    self.value = (tracker.get_local_mouse_pos(self.get_parent_local_offset())[1] - self.y.value) / self.h.value
                 elif self.orientation == 'horizontal':
-                    self.value = (tracker.local_mouse_pos[-1][0] - self.x.value) / self.w.value
+                    self.value = (tracker.get_local_mouse_pos(self.get_parent_local_offset())[0] - self.x.value) / self.w.value
 
                 if self.value < 0:
                     self.value = 0      

@@ -14,6 +14,8 @@ class Button_toggle(BaseElementUI):
 
         self.shape.add_shape("bg", RectAle("0cw", "0ch", "100cw", "100ch", [40, 40, 40], 0, 0))
         self.shape.add_shape("active", RectAle("0cw 5px", "0ch 5px", "100cw -10px", "100ch -10px", [40, 40, 40], 0, 0))
+
+        self.active_color = [100, 100, 100]
         self.toggled = False
 
 
@@ -28,11 +30,11 @@ class Button_toggle(BaseElementUI):
 
             for event in events:
                 if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                    if self.bounding_box.collidepoint(tracker.local_mouse_pos[-1]):
+                    if self.bounding_box.collidepoint(tracker.get_local_mouse_pos(self.get_parent_local_offset())):
                         self.change_state()
 
             # Hover block #
-            if self.bounding_box.collidepoint(tracker.local_mouse_pos[-1]):
+            if self.bounding_box.collidepoint(tracker.get_local_mouse_pos(self.get_parent_local_offset())):
                 self.is_hover_old = self.is_hover
                 self.is_hover = True
             else:
@@ -51,7 +53,7 @@ class Button_toggle(BaseElementUI):
 
     def change_state(self):
         self.toggled = not self.toggled
-        if self.toggled: self.shape.change_shape_color("active", [100, 100, 100])
+        if self.toggled: self.shape.change_shape_color("active", self.active_color)
         else: self.shape.change_shape_color("active", self.shape.shapes["bg"].color)
 
 

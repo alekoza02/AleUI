@@ -34,6 +34,7 @@ class BaseElementUI:
         self.h: SmartCoordinate = SmartCoordinate(h)
         self.origin = origin
         self.anchor_mode = 'absolute'
+        self.local_offset = [0, 0]
 
         self.shape: ComplexShape = ComplexShape()
         self.shape.add_shape("_highlight", RectAle("0cw -1px", "0ch -1px", "100cw 2px", "100ch 2px", [100, 100, 100], 1, 2))
@@ -56,8 +57,10 @@ class BaseElementUI:
         self.is_selected = False
         self.commands_stack = {}
 
-
         self.depth_level = None
+
+        # Sound section
+        self.sound_hover = None
 
 
     @property
@@ -68,6 +71,14 @@ class BaseElementUI:
     @property
     def total_children_indices(self):
         return [key for key in self.total_children.keys()]
+
+
+    def get_parent_local_offset(self):
+        return self.parent_object.give_local_offset()
+
+
+    def give_local_offset(self):
+        '''Implementation in Container and Collapse Window.'''
 
 
     def ask_enable_disable_element(self, enable: bool=True, priority: int=1):
@@ -151,20 +162,16 @@ class BaseElementUI:
 
     def get_render_objects(self):
         if self.is_enabled:
-            output_shapes = self.shape.get_shapes()
 
-            # removes the _highlight element, which by initialization is always the first one to be created
-            if not (self.is_highlighted or self.is_selected): 
-                output_shapes.pop(0) 
+            # removes the _highlight element
+            self.shape.change_shape_visibility("_highlight", (self.is_highlighted or self.is_selected))
             
-            # sets the color of the selection
-            elif self.is_selected: 
-                output_shapes[0].color = [200, 150, 100]
-
-            # sets the color of the highligh
+            if self.is_selected: 
+                self.shape.change_shape_color("_highlight", [200, 150, 100])
             elif self.is_highlighted: 
-                # print(f"{self = }")
-                output_shapes[0].color = [100, 100, 100]
+                self.shape.change_shape_color("_highlight", [100, 100, 100])
+
+            output_shapes = self.shape.get_shapes()
 
             return output_shapes
         else:
@@ -177,6 +184,13 @@ class BaseElementUI:
     def launch_tab_action(self):
         ...
 
+
+    # -------------------------------------------------------------------------------------------------------------------------
+    # REGION OF SOUND EFFECTS
+    # -------------------------------------------------------------------------------------------------------------------------
+    def hover_sound(self, status):
+        if not self.sound_hover is None:
+            self.sound_hover.play()
 
     # -------------------------------------------------------------------------------------------------------------------------
     # REGION OF RECURSIVE CHILDREN ELEMENTS

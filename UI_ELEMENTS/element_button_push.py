@@ -36,11 +36,11 @@ class Button_push(BaseElementUI):
 
             for event in events:
                 if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                    if self.bounding_box.collidepoint(tracker.local_mouse_pos[-1]):
+                    if self.bounding_box.collidepoint(tracker.get_local_mouse_pos(self.get_parent_local_offset())):
                         self.callback()
 
             # Hover block #
-            if self.bounding_box.collidepoint(tracker.local_mouse_pos[-1]):
+            if self.bounding_box.collidepoint(tracker.get_local_mouse_pos(self.get_parent_local_offset())):
                 self.is_hover_old = self.is_hover
                 self.is_hover = True
             else:

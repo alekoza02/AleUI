@@ -16,15 +16,36 @@ class EventTracker:
             self.drag_start_time = 0
             self.drag_start_pos = (0, 0)
             self.mouse_pos = (0, 0)
-
-            # list containing all the mouse positions relative to each container. Note that everytime we need to access this value it is enough to access the [-1], since at each cycle the list is reset and populated in order of event handling
-            self.local_mouse_pos = []
+            
+            self.dt = 0
             
             self.total_drag_distance = 0
             self.key_press_times = {}
             self.scrolled = 0
             self.request_for_window_update = False
             self.initialized = True  # Ensure it doesn't reinitialize
+
+            # special KEYS
+            self.ctrl = False
+            self.shift = False
+            self.backspace = False
+            self.left = False
+            self.right = False
+            self.tab = False
+
+            self.acc_backspace = 0
+            self.acc_left = 0
+            self.acc_right = 0
+    
+
+    def track_special_keys(self):
+        keys = pygame.key.get_pressed()
+        self.ctrl = keys[pygame.K_LCTRL]
+        self.shift = keys[pygame.K_LSHIFT]
+        self.backspace = keys[pygame.K_BACKSPACE]
+        self.left = keys[pygame.K_LEFT]
+        self.right = keys[pygame.K_RIGHT]
+        self.tab = keys[pygame.K_TAB]
 
 
     def track_mouse_events(self, event):
@@ -62,11 +83,17 @@ class EventTracker:
 
         if event.type == pygame.MOUSEMOTION:
             self.mouse_pos = event.pos
-            self.local_mouse_pos = []
+            
+
+    def get_local_drag_start_pos(self, offset):
+        return [self.drag_start_pos[0] - offset[0], self.drag_start_pos[1] - offset[1]]
+
+
+    def get_local_mouse_pos(self, offset):
+        return [self.mouse_pos[0] - offset[0], self.mouse_pos[1] - offset[1]]
 
 
     def reset(self):
-        self.local_mouse_pos = []
         self.scrolled = 0
 
 

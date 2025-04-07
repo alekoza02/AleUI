@@ -103,7 +103,7 @@ class App:
         self.get_events()
         self.render()
 
-        self.clock.tick(self.max_fps)  
+        self.event_tracker.dt = self.clock.tick(self.max_fps)  
 
 
     def update_coords_UI_elements(self):
@@ -164,6 +164,7 @@ class App:
 
     def get_events(self):
         self.event_tracker.reset()
+        self.event_tracker.track_special_keys()
         
         events = pygame.event.get()
 
