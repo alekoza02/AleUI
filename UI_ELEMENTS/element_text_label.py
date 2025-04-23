@@ -1,5 +1,6 @@
 from UI_ELEMENTS.base_element import BaseElementUI
-from UI_ELEMENTS.shapes import RectAle, LineAle, CircleAle, SurfaceAle
+# from UI_ELEMENTS.old_shapes import RectAle, LineAle, CircleAle, SurfaceAle
+from UI_ELEMENTS.shapes import RectAle, LineAle, CircleAle, SurfaceAle 
 from UI_ELEMENTS.font import Font
 from MATH.utils import MateUtils 
 from AleUI import AppSizes
@@ -12,11 +13,12 @@ if DO_NOT_EXECUTE:
     import pygame
 
 class Label_text(BaseElementUI):
-    def __init__(self, x, y, w, h, origin=None, text="Prova\\^{Passa}\\_{\\i{w\\#dc143c{o}w}}\nCannot believe it!", use_latex_font=False, text_centered_x=True, text_centered_y=True, text_tag_support=True, render_bg=True, performant=False, fixed_number_of_chars=0):
+    def __init__(self, x, y, w, h, origin=None, text="Label Text", use_latex_font=False, text_centered_x=True, text_centered_y=True, text_tag_support=True, render_bg=True, performant=False, fixed_number_of_chars=0, font_scale=1, text_color=[220, 220, 220]):
         
         size = AppSizes()
-        self.font = Font(size.h_screen * 0.011 * 1.165 - 0.4, use_latex_font)            # advised 15 for 1920x1080 and 24 for 2880x1800
-        
+        self.font = Font((size.h_screen * 0.011 * 1.165 - 0.4) * font_scale, use_latex_font)            # advised 15 for 1920x1080 and 24 for 2880x1800
+        self.text_color = text_color
+
         if fixed_number_of_chars > 0:
             size_x = self.font.font_pixel_dim[0] * fixed_number_of_chars
             w = f"{size_x}px"
@@ -25,7 +27,7 @@ class Label_text(BaseElementUI):
 
         # shape
         if render_bg:
-            self.shape.add_shape("bg", RectAle("0cw", "0ch", "100cw", "100ch", [60, 60, 60], 0, 0))
+            self.shape.add_shape("bg", RectAle("0cw", "0ch", "100cw", "100ch", [60, 60, 60], 0, 0, is_opengl=size._is_opengl))
         self.shape.add_shape("text_surface", SurfaceAle("0cw", "0ch", "100cw", "100ch"))
 
         # text info (geometrical)
@@ -113,7 +115,7 @@ class Label_text(BaseElementUI):
                         offset_orizzontale_apice = offset_orizzontale
                         offset_orizzontale_pedice = offset_orizzontale
 
-                    if substringa_analizzata.colore is None: substringa_analizzata.colore = [220, 220, 220]
+                    if substringa_analizzata.colore is None: substringa_analizzata.colore = self.text_color
 
                     offset_pedice_apice = original_spacing_y * 0.5 if substringa_analizzata.pedice else - original_spacing_y * 0.1 if substringa_analizzata.apice else 0
                     ''' OFFSETS CALCULATION BLOCK '''
@@ -180,7 +182,7 @@ class Label_text(BaseElementUI):
 
         else:
             self.text_diplayed = [self.text, 1]
-            rendered_text = self.font.font_pyg_r.render(self.text, True, [220, 220, 220])
+            rendered_text = self.font.font_pyg_r.render(self.text, True, self.text_color)
 
             x_offset, y_offset = 0, 0
 

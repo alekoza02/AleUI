@@ -21,9 +21,10 @@ class ScrollBar(BaseElementUI):
         self.delta_value = 0
 
         self.orientation = orientation
-        
-        self.shape.add_shape("bg", RectAle("0cw", "0ch", "100cw", "100ch", [50, 50, 50], 0, 0))
-        self.shape.add_shape("indicator", RectAle("0cw", "0ch", "100cw", "5ch", [100, 100, 100], 0, 0))
+
+        size = AppSizes()
+        self.shape.add_shape("bg", RectAle("0cw", "0ch", "100cw", "100ch", [50, 50, 50], 0, 0, is_opengl=size._is_opengl))
+        self.shape.add_shape("indicator", RectAle("0cw", "0ch", "100cw", "5ch", [100, 100, 100], 0, 0, is_opengl=size._is_opengl))
 
 
         self.keep_updating = False

@@ -3,16 +3,45 @@ import os
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'
 
 import pygame
-from pygame.locals import DOUBLEBUF, RESIZABLE, FULLSCREEN
+from pygame.locals import DOUBLEBUF, RESIZABLE, FULLSCREEN, OPENGL
+from OpenGL.GL import *
+
+
+VERTEX_SHADER = """
+#version 330 core
+layout (location = 0) in vec2 position;
+layout (location = 1) in vec4 in_color;
+out vec4 v_color;
+uniform vec2 screen_size;
+
+void main() {
+    vec2 normalized = position / screen_size * 2.0 - 1.0;
+    normalized.y = -normalized.y; // Invert Y axis
+    gl_Position = vec4(normalized, 0.0, 1.0);
+    v_color = in_color;
+}
+"""
+FRAGMENT_SHADER = """
+#version 330 core
+in vec4 v_color;
+out vec4 FragColor;
+void main() {
+    FragColor = v_color;
+}
+"""
+
 import numpy as np
+from math import cos, sin
+
 import ctypes
-import ctypes.wintypes
 import psutil
 from time import strftime
 
 from UI_ELEMENTS.shapes import RectAle, LineAle, CircleAle, SurfaceAle
 from UI_ELEMENTS.event_tracker import EventTracker
 from UI_ELEMENTS.CPU_data import CPU_performance
+from UI_ELEMENTS.resolution_structure import AppSizes
+from UI_ELEMENTS.shapes import ComplexShape, RectAle, CircleAle, LineAle
 
 DO_NOT_EXECUTE = False
 if DO_NOT_EXECUTE:
@@ -20,27 +49,12 @@ if DO_NOT_EXECUTE:
     from UI_ELEMENTS.element_container import Container
 
 
-class AppSizes:
-    _shared_state = {}  # Shared state across instances
-
-    def __init__(self):
-        self.__dict__ = self._shared_state  # Make all instances share the same state
-
-        # Initialize only once
-        if not hasattr(self, "initialized"):
-            self.w_screen: int = 1920
-            self.w_viewport: int = 800
-            self.h_screen: int = 1080
-            self.h_viewport: int = 600
-            self.initialized: bool = True  # Ensure it doesn't reinitialize
-
 class App:
-    def __init__(self, debug=False):
+    def __init__(self, debug=False, program_name="AleUI"):
         self.running: bool
         self.debug: bool = debug
         self.UI: dict[str, Container] = {}
-        self.render_buffer: dict[str, list[BaseElementUI]] = {}
-        self.sizes = AppSizes()
+        self.render_buffer: dict[str, list[RectAle | CircleAle | LineAle]] = {}
 
         self.CPU_statistic = [0 for _ in range(300)] 
         self.CPU_usage = CPU_performance()
@@ -52,8 +66,151 @@ class App:
         self.FPS: str = ""
         self.BATTERY: str = ""
 
+        info = self.detect_gpu_backend()
+        if debug: 
+            print("SYSTEM CHECK, RESULTS FOR GPU CALLS")
+            for key, value in info.items(): 
+                print(f"{key} : {value}")
 
-    def launch(self, program_name="AleUI"):
+        # self.is_opengl = False # Temporary developement on CPU
+        self.is_opengl = info['has_opengl'] and not info['is_software_renderer'] and info['suitable_for_modern_opengl']
+        self.sizes = AppSizes(self.is_opengl)
+
+        if self.is_opengl:
+            self.launch_GPU_based(program_name=program_name)
+        else:
+            self.launch_CPU_based(program_name=program_name)
+
+
+    @staticmethod
+    def detect_gpu_backend(min_gl_version=(3, 3)) -> dict:
+        info = {
+            "has_opengl": False,
+            "is_software_renderer": True,
+            "vendor": None,
+            "renderer": None,
+            "version": None,
+            "reason": "No problems detected",
+            "suitable_for_modern_opengl": False,
+        }
+
+        try:
+            pygame.display.init()
+            pygame.display.set_mode((1, 1), pygame.OPENGL | pygame.HIDDEN)
+
+            vendor = glGetString(GL_VENDOR)
+            renderer = glGetString(GL_RENDERER)
+            version = glGetString(GL_VERSION)
+
+            if not (vendor and renderer and version):
+                info["reason"] = "Missing GL_* strings"
+                return info
+
+            vendor   = vendor.decode().strip()
+            renderer = renderer.decode().strip().lower()
+            version  = version.decode().strip()
+
+            info["has_opengl"] = True
+            info["vendor"] = vendor
+            info["renderer"] = renderer
+            info["version"] = version
+
+            # Heuristic: check if it's software renderer
+            sw_keywords = [
+                "llvmpipe", "softpipe", "software rasterizer",
+                "mesa x11", "microsoft", "gdi generic", "swiftshader",
+                "angle (software)", "angle (swiftshader)"
+            ]
+            if any(kw in renderer for kw in sw_keywords):
+                info["is_software_renderer"] = True
+                info["reason"] = f"Renderer string contains fallback: {renderer}"
+            else:
+                info["is_software_renderer"] = False
+
+            # Check for minimum GL version (for modern OpenGL)
+            try:
+                major, minor = map(int, version.split(".")[:2])
+                if (major, minor) >= min_gl_version:
+                    info["suitable_for_modern_opengl"] = True
+            except:
+                info["reason"] += " | Failed to parse GL version."
+
+        except Exception as e:
+            info["reason"] = f"OpenGL init failed: {e}"
+
+        finally:
+            pygame.display.quit()
+
+        return info
+
+
+
+    def launch_GPU_based(self, program_name):
+        '''
+        Initializes GPU-based rendering using OpenGL.
+        '''
+        # Init attributes
+        self.running = True
+        self.fullscreen = False
+        self.max_fps = 0
+        self.current_fps = 0
+
+        pygame.init()
+        self.clock = pygame.time.Clock()
+        self.event_tracker = EventTracker()
+
+        # DPI Aware (Windows)
+        ctypes.windll.user32.SetProcessDPIAware()
+        screen_info = pygame.display.Info()
+        scale_factor = ctypes.windll.shcore.GetScaleFactorForDevice(0) / 100
+
+        self.sizes.w_screen = int(screen_info.current_w * scale_factor)
+        self.sizes.h_screen = int(screen_info.current_h * scale_factor)
+        self.sizes.w_viewport = int(self.sizes.w_screen * 0.9)
+        self.sizes.h_viewport = int(self.sizes.h_screen * 0.9)
+
+        # Create OpenGL window
+        self.root_window = pygame.display.set_mode(
+            (self.sizes.w_viewport, self.sizes.h_viewport),
+            DOUBLEBUF | OPENGL | RESIZABLE
+        )
+
+        # === SHADER SETUP ===
+        self.shader = create_shader_program(VERTEX_SHADER, FRAGMENT_SHADER)
+        glUseProgram(self.shader)
+
+        # Setup global uniforms
+        screen_size_loc = glGetUniformLocation(self.shader, "screen_size")
+        glUniform2f(screen_size_loc, self.sizes.w_viewport, self.sizes.h_viewport)
+
+        glClearColor(0.1, 0.1, 0.1, 1.0)
+
+        # Icon and window title
+        pygame.display.set_icon(pygame.image.load("TEXTURES/desktopp.ico"))
+        pygame.display.set_caption(program_name)
+
+        hwnd = pygame.display.get_wm_info()["window"]
+        ctypes.windll.dwmapi.DwmSetWindowAttribute(hwnd, 20, ctypes.byref(ctypes.c_int(1)), 4)
+
+        # === GPU Buffer Setup ===
+        self.VAO = glGenVertexArrays(1)
+        self.VBO = glGenBuffers(1)
+        glBindVertexArray(self.VAO)
+        glBindBuffer(GL_ARRAY_BUFFER, self.VBO)
+
+        # Position attribute
+        glEnableVertexAttribArray(0)
+        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 6 * 4, ctypes.c_void_p(0))
+
+        # Color attribute
+        glEnableVertexAttribArray(1)
+        glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 6 * 4, ctypes.c_void_p(8))
+
+        glBindBuffer(GL_ARRAY_BUFFER, 0)
+        glBindVertexArray(0)
+
+
+    def launch_CPU_based(self, program_name):
         '''
         Starting the program, initializes the root window.
         '''
@@ -80,7 +237,7 @@ class App:
         self.sizes.w_viewport, self.sizes.h_viewport = self.sizes.w_screen * 0.9, self.sizes.h_screen * 0.9
 
         # Window generation
-        self.root_window = pygame.display.set_mode((self.sizes.w_viewport, self.sizes.h_viewport), DOUBLEBUF | RESIZABLE | pygame.HWSURFACE)
+        self.root_window = pygame.display.set_mode((self.sizes.w_viewport, self.sizes.h_viewport), DOUBLEBUF | RESIZABLE)
 
         # Cosmetics of the windows bar
         pygame.display.set_icon(pygame.image.load("TEXTURES/desktopp.ico"))  # Carica un'icona personalizzata
@@ -113,19 +270,26 @@ class App:
 
     def render(self):        
         self.parse_UI_elements()
-        self.render_elements()
+        if self.is_opengl:
+            self.render_elements_GPU()
+        else:
+            self.render_elements_CPU()
 
-        # Swap buffers to display
-        pygame.display.flip()
+        pygame.display.flip() # Swap buffers to display
 
 
     def parse_UI_elements(self):
+        pygame.display.set_caption(f"{self.current_fps:.2f} FPS")
         self.render_buffer = {}
         for nome, elemento in self.UI.items():
-            self.render_buffer[nome] = elemento.get_render_objects()
+            self.render_buffer[nome] = []
+
+            if self.is_opengl:
+                self.render_buffer[nome].extend([RectAle(0, 0, self.UI[nome].w.value, self.UI[nome].h.value, self.UI[nome].bg, 0, 0, is_opengl=True)])
+            self.render_buffer[nome].extend(elemento.get_render_objects())
         
 
-    def render_elements(self):
+    def render_elements_CPU(self):
 
         # color the background of the app
         self.root_window.fill((25, 25, 25))
@@ -136,11 +300,7 @@ class App:
             
             for object in single_render_buffer:
 
-                if object.is_opengl:
-                    attributes = object.get_mapped_attributes()
-                else:
-                    attributes = object.get_attributes()
-                
+                attributes = object.get_attributes()                
 
                 if type(object) == RectAle:
                     pygame.draw.rect(self.UI[key].clip_canvas, **attributes)  
@@ -160,6 +320,83 @@ class App:
             blit_partial_surfaces()
 
         self.render_buffer = {}
+    
+    
+    def render_elements_GPU(self):
+        '''
+        Gathers draw instructions and renders all elements using VBO.
+        '''
+        glClear(GL_COLOR_BUFFER_BIT)
+        glUseProgram(self.shader)
+
+        # === RACCOLTA DATI ===
+        vertices = []
+
+        for key, buffer in self.render_buffer.items():
+            
+            # color the background of containers
+            x_offset, y_offset = self.UI[key].x.value, self.UI[key].y.value 
+
+            for obj in buffer:
+                attributes = obj.get_attributes()
+
+                if isinstance(obj, RectAle):
+                    x, y = attributes["position"]
+                    x, y = x + x_offset, y + y_offset
+                    w, h = attributes["size"]
+                    r, g, b = attributes["color"]
+                    a = 1.0
+
+                    vertices.extend([
+                        # 1st triangle
+                        x,     y,     r, g, b, a,
+                        x + w, y,     r, g, b, a,
+                        x + w, y + h, r, g, b, a,
+                        # 2nd triangle
+                        x,     y,     r, g, b, a,
+                        x + w, y + h, r, g, b, a,
+                        x,     y + h, r, g, b, a
+                    ])
+
+                elif isinstance(obj, LineAle):
+                    x1, y1 = attributes["start"]
+                    x1, y1 = x1 + x_offset, y1 + y_offset
+                    x2, y2 = attributes["end"]
+                    x2, y2 = x2 + x_offset, y2 + y_offset
+                    r, g, b, a = attributes["color"]
+
+                    vertices.extend([
+                        x1, y1, r, g, b, a,
+                        x2, y2, r, g, b, a
+                    ])
+
+                elif isinstance(obj, CircleAle):
+                    cx, cy = attributes["center"]
+                    cx, cy = cx + x_offset, cy + y_offset
+                    radius = attributes["radius"]
+                    r, g, b, a = attributes["color"]
+                    num_segments = 36
+                    for i in range(num_segments):
+                        theta1 = 2 * np.pi * i / num_segments
+                        theta2 = 2 * np.pi * (i + 1) / num_segments
+                        x1, y1 = cx + radius * np.cos(theta1), cy + radius * np.sin(theta1)
+                        x2, y2 = cx + radius * np.cos(theta2), cy + radius * np.sin(theta2)
+                        vertices.extend([
+                            cx, cy, r, g, b, a,
+                            x1, y1, r, g, b, a,
+                            x2, y2, r, g, b, a
+                        ])
+
+
+        # === UPLOAD + DRAW ===
+        if vertices:
+            vertex_data = np.array(vertices, dtype=np.float32)
+            glBindVertexArray(self.VAO)
+            glBindBuffer(GL_ARRAY_BUFFER, self.VBO)
+            glBufferData(GL_ARRAY_BUFFER, vertex_data.nbytes, vertex_data, GL_DYNAMIC_DRAW)
+            glDrawArrays(GL_TRIANGLES, 0, len(vertex_data) // 6)
+            glBindVertexArray(0)
+
 
 
     def get_events(self):
@@ -185,7 +422,7 @@ class App:
             if event.type == pygame.VIDEORESIZE:
                 # if not self.fullscreen:
                 self.sizes.w_viewport, self.sizes.h_viewport = event.w, event.h
-                self.update_coords_UI_elements()
+                self.resize_update(event.w, event.h)
 
         for index, item in self.UI.items():
             item.handle_events(events)
@@ -193,15 +430,30 @@ class App:
 
     def toggle_fullscreen(self):
         if self.fullscreen:
+            flags = DOUBLEBUF | RESIZABLE
+            if self.is_opengl:
+                flags |= OPENGL
             self.sizes.w_viewport, self.sizes.h_viewport = self.sizes.w_screen * 0.9, self.sizes.h_screen * 0.9
-            self.root_window = pygame.display.set_mode((self.sizes.w_viewport, self.sizes.h_viewport), DOUBLEBUF | RESIZABLE)
-            self.update_coords_UI_elements()
+            self.root_window = pygame.display.set_mode((self.sizes.w_viewport, self.sizes.h_viewport), flags)
         else:
+            flags = DOUBLEBUF | FULLSCREEN
+            if self.is_opengl:
+                flags |= OPENGL
             self.sizes.w_viewport, self.sizes.h_viewport, = self.sizes.w_screen, self.sizes.h_screen
-            self.root_window = pygame.display.set_mode((self.sizes.w_viewport, self.sizes.h_viewport), DOUBLEBUF | FULLSCREEN)
-            self.update_coords_UI_elements()
+            self.root_window = pygame.display.set_mode((self.sizes.w_viewport, self.sizes.h_viewport), flags)
             
+        self.resize_update(self.sizes.w_viewport, self.sizes.h_viewport)
         self.fullscreen = not self.fullscreen
+
+
+    def resize_update(self, new_w, new_h):
+        glViewport(0, 0, new_w, new_h)
+        self.update_coords_UI_elements()
+
+        # === AGGIORNA UNIFORME NELLO SHADER ===
+        screen_size_loc = glGetUniformLocation(self.shader, "screen_size")
+        glUseProgram(self.shader)
+        glUniform2f(screen_size_loc, new_w, new_h)
 
 
     def update_pc_attributes(self):
@@ -291,3 +543,25 @@ class App:
                 self.UI["STATS"].child_elements["BATTERY"].change_text(self.BATTERY)
             except KeyError:
                 ...
+
+
+def compile_shader(source, shader_type):
+    shader = glCreateShader(shader_type)
+    glShaderSource(shader, source)
+    glCompileShader(shader)
+    if not glGetShaderiv(shader, GL_COMPILE_STATUS):
+        error = glGetShaderInfoLog(shader).decode()
+        raise RuntimeError(f"Shader compilation failed: {error}")
+    return shader
+
+def create_shader_program(vertex_shader_source, fragment_shader_source):
+    vertex_shader = compile_shader(vertex_shader_source, GL_VERTEX_SHADER)
+    fragment_shader = compile_shader(fragment_shader_source, GL_FRAGMENT_SHADER)
+    program = glCreateProgram()
+    glAttachShader(program, vertex_shader)
+    glAttachShader(program, fragment_shader)
+    glLinkProgram(program)
+    if not glGetProgramiv(program, GL_LINK_STATUS):
+        error = glGetProgramInfoLog(program).decode()
+        raise RuntimeError(f"Shader linking failed: {error}")
+    return program

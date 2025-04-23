@@ -3,7 +3,7 @@ from UI_ELEMENTS.shapes import RectAle, LineAle, CircleAle
 from UI_ELEMENTS.element_button_toggle import Button_toggle
 from UI_ELEMENTS.element_text_label import Label_text
 from UI_ELEMENTS.event_tracker import EventTracker
-
+from AleUI import AppSizes
 
 class Collapse_Window(BaseElementUI):
     def __init__(self, x, y, w, h, achor=None, title="Collapsable window", performant=False):
@@ -13,7 +13,8 @@ class Collapse_Window(BaseElementUI):
 
         self.use_tab_for_selection = True                           # TODO: give the possibility to disable this function (For example in containers with only viewports)
         
-        self.shape.add_shape("bg", RectAle("0cw", "0ch", "100cw", "100ch", [20, 20, 20], 0, 2))
+        size = AppSizes()
+        self.shape.add_shape("bg", RectAle("0cw", "0ch", "100cw", "100ch", [20, 20, 20], 0, 2, is_opengl=size._is_opengl))
         self.componenets: dict[str, Label_text | Button_toggle] = {
             "_toggle" : Button_toggle("1vw", "1vh", "2.5cw", "2.5cw", "lu"),
             "_title" : Label_text("2vw 2.5cw", "1vh", "30cw", "2.5cw", "lu", text=title, text_centered_x=False, text_tag_support=False, render_bg=False)

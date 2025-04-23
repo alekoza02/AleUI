@@ -1,7 +1,7 @@
 if __name__ == "__main__":
     from AleUI import App
-    from SCENES.debug import build_dev_scene
-
+    from SCENES.pomo_scene import build_dev_scene
+    
     PROFILATORE = 1
 
     if PROFILATORE:
@@ -10,7 +10,6 @@ if __name__ == "__main__":
 
 
     app: App = App(debug=True)
-    app.launch()
     app = build_dev_scene(app)
 
     while app.running:

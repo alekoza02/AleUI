@@ -11,12 +11,13 @@ if DO_NOT_EXECUTE:
 
 def build_dev_scene(app: 'App') -> 'App':
     app.UI["debug1"] = Container("0vw 10px", "0vh 10px", "50vw -15px", "97.5vh -20px", None, performant=1)
-    app.UI["debug1"].add_element("debugger", Entry("50cw", "50ch", "70cw", "100px", "center-center", performant=1))
+    app.UI["debug1"].add_element("debugger1", Entry("50cw", "30ch", "70cw", "100px", "center-center", performant=1, font_scale=2))
+    app.UI["debug1"].add_element("debugger2", Entry("50cw", "60ch", "70cw", "100px", "center-center", performant=1, font_scale=2))
+    app.UI["debug1"].add_element("debugger3", Entry("50cw", "90ch", "70cw", "100px", "center-center", performant=1, font_scale=2))
     
 
     app.UI["debug2"] = Container("50vw 5px", "0vh 10px", "50vw -15px", "66.6vh -15px", None, performant=1, scrollable=True)
     app.UI["debug3"] = Container("50vw 5px", "66.6vh 5px", "50vw -15px", "30.8vh -15px", None, performant=1)
-    app.UI["debug3"].add_element("debugger", Entry("50cw", "50ch", "70cw", "100px", "center-center", performant=1))
     
     app.UI["debug2"].add_element("debugger", Collapse_Window("2cw", "0ch 5px", "95cw -10px", "20ch", "left-up", title="Collapsable 1", performant=1))
     app.UI["debug2"].add_element("debugger2", Collapse_Window("0px", "0px", "95cw -10px", "20ch", "center-up", title="Collapsable 2", performant=1))

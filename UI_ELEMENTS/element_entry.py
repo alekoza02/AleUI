@@ -2,6 +2,7 @@ from UI_ELEMENTS.base_element import BaseElementUI
 from UI_ELEMENTS.element_text_label import Label_text
 from UI_ELEMENTS.shapes import RectAle, LineAle, CircleAle
 from UI_ELEMENTS.animations import BaseAnimation
+from AleUI import AppSizes
 from MATH.utils import MateUtils
 import pyperclip
 import numpy as np
@@ -14,20 +15,21 @@ if not DO_NOT_EXECUTE:
 
 
 class Entry(BaseElementUI):
-    def __init__(self, x, y, w, h, origin=None, initial_text="Entry text", performant=False):
+    def __init__(self, x, y, w, h, origin=None, initial_text="Entry text", font_scale=1, performant=False):
         super().__init__(x, y, w, h, origin, performant)
 
+        size = AppSizes()
         self.shape.reset()
-        self.shape.add_shape("_highlight", RectAle("0cw -1px", "0ch -1px", "100cw 2px", "100ch 2px", [100, 100, 100], 1, 2))
-        self.shape.add_shape("bg", RectAle("0cw", "0ch", "100cw", "100ch", [70, 70, 70], 0, 0))
-        self.shape.add_shape("active", RectAle("1px", "1px", "100cw -2px", "100ch -2px", [70, 70, 70], 0, 0))
+        self.shape.add_shape("_highlight", RectAle("0cw -1px", "0ch -1px", "100cw 2px", "100ch 2px", [100, 100, 100], 1, 2, is_opengl=size._is_opengl))
+        self.shape.add_shape("bg", RectAle("0cw", "0ch", "100cw", "100ch", [60, 60, 60], 0, 0, is_opengl=size._is_opengl))
+        self.shape.add_shape("active", RectAle("1px", "1px", "100cw -2px", "100ch -2px", [60, 60, 60], 0, 0, is_opengl=size._is_opengl))
         
         self.offset_grafico_testo = 5
-        self.shape.add_shape("pointer", RectAle(f"{self.offset_grafico_testo}px", "12.5ch", "2px", "75ch", [245, 10, 10], 0, 0))
-        self.shape.add_shape("highlighted", RectAle("0px", "12.5ch", "0px", "75ch", MateUtils.hex2rgb("91b1ff"), 0, 0))
+        self.shape.add_shape("highlighted", RectAle("0px", "12.5ch", "0px", "75ch", MateUtils.hex2rgb("91b1ff"), 0, 0, is_opengl=size._is_opengl))
+        self.shape.add_shape("pointer", RectAle(f"{self.offset_grafico_testo}px", "12.5ch", "2px", "75ch", [50, 50, 50], 0, 0, is_opengl=size._is_opengl))
         
         self.componenets: dict[str, Label_text] = {
-            "_title" : Label_text(f"{self.offset_grafico_testo}px", "0ch", f"100cw -{2 * self.offset_grafico_testo}px", "100ch", "left-up", text=initial_text, text_tag_support=False, text_centered_x=False, render_bg=False)
+            "_title" : Label_text(f"{self.offset_grafico_testo}px", "0ch", f"100cw -{2 * self.offset_grafico_testo}px", "100ch", "left-up", text=initial_text, text_tag_support=False, text_centered_x=False, render_bg=False, font_scale=font_scale)
         }
 
         for key, value in self.componenets.items():
@@ -35,7 +37,7 @@ class Entry(BaseElementUI):
 
         self.toggled = False
 
-        self.active_color = [138, 167, 245]
+        self.active_color = [75, 90, 100]
 
 
         # IMPORTED
@@ -49,8 +51,8 @@ class Entry(BaseElementUI):
         self.testo = initial_text
         self.previous_text: str = ""
 
-        self.lunghezza_max = 20
-        self.solo_numeri = False
+        self.lunghezza_max = 34
+        self.solo_numeri = True
         self.num_valore_minimo = 0
         self.num_valore_massimo = 1000
         self.is_hex = False
@@ -85,17 +87,15 @@ class Entry(BaseElementUI):
                 [element.handle_events(events) for index, element in self.componenets.items()]
 
                 self.return_previous_text = True
-                '''TO BE CONTINUED'''
                 self.eventami_scrittura(events)
             
-
                 if self.solo_numeri:
                     numero_equivalente = MateUtils.inp2flo(self.testo, None)
 
                     if numero_equivalente is None:
-                        self.color_text = np.array([255, 0, 0])
+                        self.componenets["_title"].text_color = np.array([255, 0, 0])
                     else:
-                        self.color_text = np.array([200, 200, 200])
+                        self.componenets["_title"].text_color = np.array([200, 200, 200])
             else:
                 self.return_previous_text = False
                 self.previous_text = self.testo
@@ -108,21 +108,19 @@ class Entry(BaseElementUI):
                 self.animazione_puntatore.riavvia()
 
 
-        if self.is_enabled:
-            # get the latest events and relative positions 
-            tracker = EventTracker()
-
             for event in events:
                 if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                    self.toggled = self.bounding_box.collidepoint(tracker.get_local_mouse_pos(self.get_parent_local_offset()))
+                    self.change_state(self.bounding_box.collidepoint(event_tracker.get_local_mouse_pos(self.get_parent_local_offset())))
 
                     if self.toggled:
                         self.animazione_puntatore.riavvia()
 
+                if event.type == pygame.KEYDOWN and event.key == pygame.K_TAB: 
+                    self.handle_deselection()
 
 
             # Hover block #
-            if self.bounding_box.collidepoint(tracker.get_local_mouse_pos(self.get_parent_local_offset())):
+            if self.bounding_box.collidepoint(event_tracker.get_local_mouse_pos(self.get_parent_local_offset())):
                 self.is_hover_old = self.is_hover
                 self.is_hover = True
             else:
@@ -153,6 +151,11 @@ class Entry(BaseElementUI):
 
     def launch_tab_action(self):
         self.change_state()
+
+
+    def handle_deselection(self):
+        self.change_state(False)
+        return super().handle_deselection()
 
 
     def get_render_objects(self):
@@ -205,39 +208,39 @@ class Entry(BaseElementUI):
     IMPORTED BLOCK
     '''
 
-    def check_for_lost_focus(self, events, force_closure=False):
+    # def check_for_lost_focus(self, events, force_closure=False):
 
-        if force_closure:
-            self.toggled = False
-            self.return_previous_text = False
-            _ = self.get_text()         # update of the value to avoid lost info 
+    #     if force_closure:
+    #         self.toggled = False
+    #         self.return_previous_text = False
+    #         _ = self.get_text()         # update of the value to avoid lost info 
 
-        for event in events:
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                if event.button == 1:
-                    if self.bounding_box.collidepoint(event.pos):
+    #     for event in events:
+    #         if event.type == pygame.MOUSEBUTTONDOWN:
+    #             if event.button == 1:
+    #                 if self.bounding_box.collidepoint(event.pos):
                         
-                        if self.toggled:
-                            self.highlight_region = [0, 0]
-                            self.update_puntatore_pos(event.pos)
-                        else:    
-                            self.toggled = True
-                            self.highlight_region = [len(self.testo), 0]
-                            self.puntatore_pos = len(self.testo)
+    #                     if self.toggled:
+    #                         self.highlight_region = [0, 0]
+    #                         self.update_puntatore_pos(event.pos)
+    #                     else:    
+    #                         self.toggled = True
+    #                         self.highlight_region = [len(self.testo), 0]
+    #                         self.puntatore_pos = len(self.testo)
 
-                        self.animazione_puntatore.riavvia()
+    #                     self.animazione_puntatore.riavvia()
 
-                    else:
-                        self.toggled = False
-                        self.highlight_region = [0, 0]
+    #                 else:
+    #                     self.toggled = False
+    #                     self.highlight_region = [0, 0]
                         
 
-            if event.type == pygame.MOUSEBUTTONUP:
-                if event.button == 1:
-                    if self.bounding_box.collidepoint(event.pos):
-                        if self.toggled:
-                            if self.do_stuff and not self.sound_select is None: self.sound_select.play()
-                            self.animazione_puntatore.riavvia()
+    #         if event.type == pygame.MOUSEBUTTONUP:
+    #             if event.button == 1:
+    #                 if self.bounding_box.collidepoint(event.pos):
+    #                     if self.toggled:
+    #                         if self.do_stuff and not self.sound_select is None: self.sound_select.play()
+    #                         self.animazione_puntatore.riavvia()
 
 
     def eventami_scrittura(self, events: list['Event']):
@@ -347,7 +350,6 @@ class Entry(BaseElementUI):
                         reset_animation = True
                 
                 if event.type == pygame.KEYDOWN:
-                    '''TO BE CONTINUED'''
                     # SOUND / AUDIO
                     # self.sound_typing.play()
                     
@@ -551,6 +553,10 @@ class Entry(BaseElementUI):
 
             if old_text != self.testo:
                 self.componenets["_title"].change_text(self.testo)
+                 
+                # check for good measure
+                if self.puntatore_pos > len(self.testo):
+                    self.puntatore_pos = len(self.testo)
 
 
     def update_puntatore_pos(self, pos: tuple[int]):

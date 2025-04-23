@@ -1,5 +1,6 @@
 from UI_ELEMENTS.base_element import BaseElementUI
 from UI_ELEMENTS.shapes import RectAle, LineAle, CircleAle
+from AleUI import AppSizes
 
 DO_NOT_EXECUTE = False
 if not DO_NOT_EXECUTE:
@@ -12,8 +13,9 @@ class Button_toggle(BaseElementUI):
     def __init__(self, x, y, w, h, origin=None, performant=False):
         super().__init__(x, y, w, h, origin, performant)
 
-        self.shape.add_shape("bg", RectAle("0cw", "0ch", "100cw", "100ch", [40, 40, 40], 0, 0))
-        self.shape.add_shape("active", RectAle("0cw 5px", "0ch 5px", "100cw -10px", "100ch -10px", [40, 40, 40], 0, 0))
+        size = AppSizes()
+        self.shape.add_shape("bg", RectAle("0cw", "0ch", "100cw", "100ch", [40, 40, 40], 0, 0, is_opengl=size._is_opengl))
+        self.shape.add_shape("active", RectAle("0cw 5px", "0ch 5px", "100cw -10px", "100ch -10px", [40, 40, 40], 0, 0, is_opengl=size._is_opengl))
 
         self.active_color = [100, 100, 100]
         self.toggled = False

@@ -1,7 +1,12 @@
 class SmartCoordinate:
-    def __init__(self, value: str):
-        self.lst_str_value: list[str] = value.split()
-        self.int_value: int = 0
+    def __init__(self, value: str | int):
+
+        if type(value) == str:
+            self.lst_str_value: list[str] = value.split()
+            self.int_value: int = 0
+        else:
+            self.lst_str_value: list[str] = f"{value}px"
+            self.int_value: int = value
 
 
     def change_str_value(self, string: str):

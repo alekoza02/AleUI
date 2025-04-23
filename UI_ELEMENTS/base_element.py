@@ -36,8 +36,9 @@ class BaseElementUI:
         self.anchor_mode = 'absolute'
         self.local_offset = [0, 0]
 
+        size = AppSizes()
         self.shape: ComplexShape = ComplexShape()
-        self.shape.add_shape("_highlight", RectAle("0cw -1px", "0ch -1px", "100cw 2px", "100ch 2px", [100, 100, 100], 1, 2))
+        self.shape.add_shape("_highlight", RectAle("0cw -1px", "0ch -1px", "100cw 2px", "100ch 2px", [100, 100, 100], 1, 2, is_opengl=size._is_opengl))
         self.bounding_box: pygame.Rect = pygame.Rect(self.x.value, self.y.value, self.w.value, self.h.value)
 
         self.componenets: dict[str, BaseElementUI] = {}     # this attribute determines if an element has other elements for its working
@@ -256,6 +257,9 @@ class BaseElementUI:
                         if highlighted_child.has_child_or_components:
                             list(highlighted_child.total_children.values())[0].is_highlighted = True
                             highlighted_child.element_highlighted = 0
+                        else:
+                            # executes default behaviour (unique for each class)
+                            self._event_execute_child_element(self.get_highlighted_element_index())
                 
 
             # DESELECT WITH ESCAPE
@@ -311,10 +315,14 @@ class BaseElementUI:
             highlighted_child = self.get_highlighted_element()
                 
             if highlighted_child.is_selected:
-                highlighted_child.is_selected = False
+                highlighted_child.handle_deselection()
 
 
-    def highlight_next_element(self, keys):
+    def handle_deselection(self):
+        self.is_selected = False
+
+
+    def highlight_next_element(self, keys):    
         if keys[pygame.K_LSHIFT]:
             # go to previous
             if self.element_highlighted == 0:
