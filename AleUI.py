@@ -136,12 +136,8 @@ class App:
             
             for object in single_render_buffer:
 
-                if object.is_opengl:
-                    attributes = object.get_mapped_attributes()
-                else:
-                    attributes = object.get_attributes()
+                attributes = object.get_attributes()
                 
-
                 if type(object) == RectAle:
                     pygame.draw.rect(self.UI[key].clip_canvas, **attributes)  
                     
