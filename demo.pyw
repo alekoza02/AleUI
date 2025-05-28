@@ -1,6 +1,7 @@
 if __name__ == "__main__":
     from AleUI import App
-    from SCENES.debug import build_dev_scene
+    # from SCENES.debug import build_dev_scene
+    from SCENES.pomoscene import build_dev_scene
 
     PROFILATORE = 1
 

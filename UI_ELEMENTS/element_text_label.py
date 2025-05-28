@@ -12,7 +12,7 @@ if DO_NOT_EXECUTE:
     import pygame
 
 class Label_text(BaseElementUI):
-    def __init__(self, x, y, w, h, origin=None, text="Prova\\^{Passa}\\_{\\i{w\\#dc143c{o}w}}\nCannot believe it!", use_latex_font=False, text_centered_x=True, text_centered_y=True, text_tag_support=True, render_bg=True, performant=False, fixed_number_of_chars=0):
+    def __init__(self, x, y, w, h, origin=None, text="Prova\\^{Passa}\\_{\\i{w\\#dc143c{o}w}}\nCannot believe it!", use_latex_font=False, text_centered_x=True, text_centered_y=True, text_tag_support=True, render_bg=True, fixed_number_of_chars=0):
         
         size = AppSizes()
         self.font = Font(size.h_screen * 0.011 * 1.165 - 0.4, use_latex_font)            # advised 15 for 1920x1080 and 24 for 2880x1800
@@ -21,7 +21,7 @@ class Label_text(BaseElementUI):
             size_x = self.font.font_pixel_dim[0] * fixed_number_of_chars
             w = f"{size_x}px"
 
-        super().__init__(x, y, w, h, origin, performant)
+        super().__init__(x, y, w, h, origin)
 
         # shape
         if render_bg:

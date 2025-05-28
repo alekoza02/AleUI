@@ -10,8 +10,8 @@ if DO_NOT_EXECUTE:
     ...
 
 class ScrollBar(BaseElementUI):
-    def __init__(self, x, y, w, h, origin='left-up', performant=False, starting_value=0.0, min_value=0.0, max_value=1.0, orientation='horizontal'):
-        super().__init__(x, y, w, h, origin, performant)
+    def __init__(self, x, y, w, h, origin='left-up', starting_value=0.0, min_value=0.0, max_value=1.0, orientation='horizontal'):
+        super().__init__(x, y, w, h, origin)
 
         self.has_child_or_components = False
 

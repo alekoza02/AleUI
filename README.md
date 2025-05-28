@@ -135,13 +135,13 @@ Multi_button:
 Entry_box:
 --
 - Cosmetic:
-    - $[\text{X}]$ Text clipped outside the Bounding Box
-    - $[\text{X}]$ Intermitting pointer with reset when starting writing
+    - $[\checkmark]$ Text clipped outside the Bounding Box
+    - $[\checkmark]$ Intermitting pointer with reset when starting writing
     - $[\text{X}]$ Title of the entry box 
-    - $[\text{X}]$ Default text
+    - $[\checkmark]$ Default text
 
 - Functionality:
-    - $[\text{X}]$ Select through $\textit{`tab'}$ (goes to next if no autocompletion)  
+    - $[\checkmark]$ Select through $\textit{`tab'}$ (goes to next if no autocompletion)   
     - $[\text{X}]$ Basic autocompletion with $\textit{`tab'}$
     - $[\text{X}]$ Minimum delay of autocompletion
     - $[\text{X}]$ Show possible autocompletion + choosing with arrows

@@ -14,8 +14,8 @@ if not DO_NOT_EXECUTE:
 
 
 class Entry(BaseElementUI):
-    def __init__(self, x, y, w, h, origin=None, initial_text="Entry text", performant=False):
-        super().__init__(x, y, w, h, origin, performant)
+    def __init__(self, x, y, w, h, origin=None, initial_text="Entry text"):
+        super().__init__(x, y, w, h, origin)
 
         self.shape.reset()
         self.shape.add_shape("_highlight", RectAle("0cw -1px", "0ch -1px", "100cw 2px", "100ch 2px", [100, 100, 100], 1, 2))
@@ -108,21 +108,20 @@ class Entry(BaseElementUI):
                 self.animazione_puntatore.riavvia()
 
 
-        if self.is_enabled:
-            # get the latest events and relative positions 
-            tracker = EventTracker()
-
             for event in events:
                 if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                    self.toggled = self.bounding_box.collidepoint(tracker.get_local_mouse_pos(self.get_parent_local_offset()))
+                    self.change_state(self.bounding_box.collidepoint(event_tracker.get_local_mouse_pos(self.get_parent_local_offset())))
 
                     if self.toggled:
                         self.animazione_puntatore.riavvia()
 
+                if event.type == pygame.KEYDOWN and event.key == pygame.K_TAB: 
+                    self.handle_deselection()
+
 
 
             # Hover block #
-            if self.bounding_box.collidepoint(tracker.get_local_mouse_pos(self.get_parent_local_offset())):
+            if self.bounding_box.collidepoint(event_tracker.get_local_mouse_pos(self.get_parent_local_offset())):
                 self.is_hover_old = self.is_hover
                 self.is_hover = True
             else:
@@ -149,6 +148,11 @@ class Entry(BaseElementUI):
         
         if self.toggled: self.shape.change_shape_color("active", self.active_color)
         else: self.shape.change_shape_color("active", self.shape.shapes["bg"].color)
+
+
+    def handle_deselection(self):
+        self.change_state(False)
+        return super().handle_deselection()
 
 
     def launch_tab_action(self):
@@ -205,39 +209,39 @@ class Entry(BaseElementUI):
     IMPORTED BLOCK
     '''
 
-    def check_for_lost_focus(self, events, force_closure=False):
+    # def check_for_lost_focus(self, events, force_closure=False):
 
-        if force_closure:
-            self.toggled = False
-            self.return_previous_text = False
-            _ = self.get_text()         # update of the value to avoid lost info 
+    #     if force_closure:
+    #         self.toggled = False
+    #         self.return_previous_text = False
+    #         _ = self.get_text()         # update of the value to avoid lost info 
 
-        for event in events:
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                if event.button == 1:
-                    if self.bounding_box.collidepoint(event.pos):
+    #     for event in events:
+    #         if event.type == pygame.MOUSEBUTTONDOWN:
+    #             if event.button == 1:
+    #                 if self.bounding_box.collidepoint(event.pos):
                         
-                        if self.toggled:
-                            self.highlight_region = [0, 0]
-                            self.update_puntatore_pos(event.pos)
-                        else:    
-                            self.toggled = True
-                            self.highlight_region = [len(self.testo), 0]
-                            self.puntatore_pos = len(self.testo)
+    #                     if self.toggled:
+    #                         self.highlight_region = [0, 0]
+    #                         self.update_puntatore_pos(event.pos)
+    #                     else:    
+    #                         self.toggled = True
+    #                         self.highlight_region = [len(self.testo), 0]
+    #                         self.puntatore_pos = len(self.testo)
 
-                        self.animazione_puntatore.riavvia()
+    #                     self.animazione_puntatore.riavvia()
 
-                    else:
-                        self.toggled = False
-                        self.highlight_region = [0, 0]
+    #                 else:
+    #                     self.toggled = False
+    #                     self.highlight_region = [0, 0]
                         
 
-            if event.type == pygame.MOUSEBUTTONUP:
-                if event.button == 1:
-                    if self.bounding_box.collidepoint(event.pos):
-                        if self.toggled:
-                            if self.do_stuff and not self.sound_select is None: self.sound_select.play()
-                            self.animazione_puntatore.riavvia()
+    #         if event.type == pygame.MOUSEBUTTONUP:
+    #             if event.button == 1:
+    #                 if self.bounding_box.collidepoint(event.pos):
+    #                     if self.toggled:
+    #                         if self.do_stuff and not self.sound_select is None: self.sound_select.play()
+    #                         self.animazione_puntatore.riavvia()
 
 
     def eventami_scrittura(self, events: list['Event']):
@@ -347,7 +351,6 @@ class Entry(BaseElementUI):
                         reset_animation = True
                 
                 if event.type == pygame.KEYDOWN:
-                    '''TO BE CONTINUED'''
                     # SOUND / AUDIO
                     # self.sound_typing.play()
                     
@@ -551,6 +554,10 @@ class Entry(BaseElementUI):
 
             if old_text != self.testo:
                 self.componenets["_title"].change_text(self.testo)
+
+                # check for good measure
+                if self.puntatore_pos > len(self.testo):
+                    self.puntatore_pos = len(self.testo)
 
 
     def update_puntatore_pos(self, pos: tuple[int]):

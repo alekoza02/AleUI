@@ -27,7 +27,7 @@ from AleUI import AppSizes
 # right-down: bottom-right corner
 
 class BaseElementUI:
-    def __init__(self, x, y, w, h, origin='left-up', performant=False):
+    def __init__(self, x, y, w, h, origin='left-up'):
         self.x: SmartCoordinate = SmartCoordinate(x)
         self.y: SmartCoordinate = SmartCoordinate(y)
         self.w: SmartCoordinate = SmartCoordinate(w)
@@ -256,6 +256,9 @@ class BaseElementUI:
                         if highlighted_child.has_child_or_components:
                             list(highlighted_child.total_children.values())[0].is_highlighted = True
                             highlighted_child.element_highlighted = 0
+                        else:
+                            # executes default behaviour (unique for each class)
+                            self._event_execute_child_element(self.get_highlighted_element_index())
                 
 
             # DESELECT WITH ESCAPE
@@ -311,7 +314,11 @@ class BaseElementUI:
             highlighted_child = self.get_highlighted_element()
                 
             if highlighted_child.is_selected:
-                highlighted_child.is_selected = False
+                highlighted_child.handle_deselection()
+
+
+    def handle_deselection(self):
+        self.is_selected = False
 
 
     def highlight_next_element(self, keys):
