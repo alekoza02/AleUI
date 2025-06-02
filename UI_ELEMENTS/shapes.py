@@ -7,10 +7,24 @@ class ComplexShape:
     def __init__(self):
         self.shapes: dict[str, RectAle] = {}
         self.shapes_active_map: dict[str, bool] = {}
+        self.clip_rect_parent = None
+        
+
+    @property
+    def clip_rect(self):
+        if self.clip_rect_parent is None:
+            return None
+        else:
+            return self.clip_rect_parent.rect
+
+    
+    def set_clip_rect_parent(self, clip_rect_parent: 'RectAle'):
+        self.clip_rect_parent = clip_rect_parent
         
 
     def add_shape(self, key, shape):
         self.shapes[key] = shape
+        self.shapes[key].parent = self
         self.shapes_active_map[key] = True
         
 
@@ -76,7 +90,8 @@ class RectAle:
             "color" : self.color,
             "rect" : self.rect,
             "width" : self.width,
-            "border_radius" : self.border_radius
+            "border_radius" : self.border_radius,
+            "clip_rect" : self.parent.clip_rect
         }
     
     
@@ -110,6 +125,7 @@ class LineAle:
             "start_pos" : self.start_pos,
             "end_pos" : self.end_pos,
             "width" : self.width,
+            "clip_rect" : self.parent.clip_rect
         }
 
 
@@ -138,6 +154,7 @@ class CircleAle:
             "center" : self.center,
             "radius" : self.radius.value,
             "width" : self.width,
+            "clip_rect" : self.parent.clip_rect
         }
     
 
@@ -154,10 +171,15 @@ class SurfaceAle:
     def update(self, x_container, y_container, w_container, h_container):
         self.x.update_value(None, None, None, None, w_container, h_container, x_container)
         self.y.update_value(None, None, None, None, w_container, h_container, y_container)
+        
+        old_w = self.w.value
+        old_h = self.h.value
+
         self.w.update_value(None, None, None, None, w_container, h_container, 0)
         self.h.update_value(None, None, None, None, w_container, h_container, 0)
-        
-        self.surface = Surface((self.w.value, self.h.value), SRCALPHA)
+
+        if old_w != self.w.value or old_h != self.h.value:
+            self.surface = Surface((self.w.value, self.h.value), SRCALPHA)
 
 
     def fill(self, *args):
@@ -172,4 +194,5 @@ class SurfaceAle:
         return {
             "source" : self.surface,
             "dest" : (self.x.value, self.y.value),
+            "clip_rect" : self.parent.clip_rect
         }

@@ -9,14 +9,20 @@ if not DO_NOT_EXECUTE:
 
 
 class Button_toggle(BaseElementUI):
-    def __init__(self, x, y, w, h, origin=None, performant=False):
-        super().__init__(x, y, w, h, origin, performant)
+    def __init__(self, x, y, w, h, origin=None, initial_status=False):
+        super().__init__(x, y, w, h, origin)
 
         self.shape.add_shape("bg", RectAle("0cw", "0ch", "100cw", "100ch", [40, 40, 40], 0, 0))
         self.shape.add_shape("active", RectAle("0cw 5px", "0ch 5px", "100cw -10px", "100ch -10px", [40, 40, 40], 0, 0))
 
         self.active_color = [100, 100, 100]
-        self.toggled = False
+        self.toggled = initial_status
+
+
+    def set_state(self, state):
+        self.toggled = state
+        if self.toggled: self.shape.change_shape_color("active", self.active_color)
+        else: self.shape.change_shape_color("active", self.shape.shapes["bg"].color)
 
 
     def get_state(self):
@@ -52,9 +58,7 @@ class Button_toggle(BaseElementUI):
 
 
     def change_state(self):
-        self.toggled = not self.toggled
-        if self.toggled: self.shape.change_shape_color("active", self.active_color)
-        else: self.shape.change_shape_color("active", self.shape.shapes["bg"].color)
+        self.set_state(not self.get_state())
 
 
     def launch_tab_action(self):

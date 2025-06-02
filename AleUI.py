@@ -168,21 +168,28 @@ class App:
             # color the background of containers
             self.UI[key].clip_canvas.fill(self.UI[key].bg)
             
+            active_clip_rect = None
+
             for object in single_render_buffer:
 
                 attributes = object.get_attributes()
                 
+                # setup of the clipping region
+                if attributes["clip_rect"] != active_clip_rect:
+                    active_clip_rect = attributes["clip_rect"]
+                    self.UI[key].clip_canvas.set_clip(active_clip_rect)
+
                 if type(object) == RectAle:
-                    pygame.draw.rect(self.UI[key].clip_canvas, **attributes)  
+                    pygame.draw.rect(self.UI[key].clip_canvas, **{k: v for k, v in attributes.items() if k != 'clip_rect'})  
                     
                 elif type(object) == LineAle:
-                    pygame.draw.line(self.UI[key].clip_canvas, **attributes)   
+                    pygame.draw.line(self.UI[key].clip_canvas, **{k: v for k, v in attributes.items() if k != 'clip_rect'})   
                 
                 elif type(object) == CircleAle:
-                    pygame.draw.circle(self.UI[key].clip_canvas, **attributes)
+                    pygame.draw.circle(self.UI[key].clip_canvas, **{k: v for k, v in attributes.items() if k != 'clip_rect'})
                 
                 elif type(object) == SurfaceAle:
-                    self.UI[key].clip_canvas.blit(**attributes)
+                    self.UI[key].clip_canvas.blit(**{k: v for k, v in attributes.items() if k != 'clip_rect'})
 
             def blit_partial_surfaces(): 
                 '''Function made purely to monitor blit performances.'''       

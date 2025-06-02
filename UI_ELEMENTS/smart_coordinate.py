@@ -3,10 +3,10 @@ class SmartCoordinate:
 
         if type(value) == str:
             self.lst_str_value: list[str] = value.split()
-            self.int_value: int = 0
+            self._int_value: int = 0
         else:
             self.lst_str_value: list[str] = f"{value}px"
-            self.int_value: int = value
+            self._int_value: int = value
 
 
     def change_str_value(self, string: str):
@@ -35,7 +35,7 @@ class SmartCoordinate:
                 result += float(coord)
         
         result += offset
-        self.int_value = round(result)
+        self._int_value = round(result)
 
 
     def origin_correction(self, origin: str, size: int, axis: str):
@@ -43,38 +43,38 @@ class SmartCoordinate:
         if axis == "x":
             match origin:
                 case 'center-up':
-                    self.int_value -= size // 2 
+                    self._int_value -= size // 2 
                 case 'center-center':
-                    self.int_value -= size // 2 
+                    self._int_value -= size // 2 
                 case 'center-down':
-                    self.int_value -= size // 2 
+                    self._int_value -= size // 2 
                 case 'right-up':
-                    self.int_value -= size 
+                    self._int_value -= size 
                 case 'right-center':
-                    self.int_value -= size 
+                    self._int_value -= size 
                 case 'right-down':
-                    self.int_value -= size 
+                    self._int_value -= size 
                 case _:
                     pass
         
         elif axis == "y":
             match origin:
                 case 'left-center':
-                    self.int_value -= size // 2 
+                    self._int_value -= size // 2 
                 case 'center-center':
-                    self.int_value -= size // 2 
+                    self._int_value -= size // 2 
                 case 'right-center':
-                    self.int_value -= size // 2 
+                    self._int_value -= size // 2 
                 case 'left-down':
-                    self.int_value -= size 
+                    self._int_value -= size 
                 case 'center-down':
-                    self.int_value -= size 
+                    self._int_value -= size 
                 case 'right-down':
-                    self.int_value -= size 
+                    self._int_value -= size 
                 case _:
                     pass
 
 
     @property
     def value(self) -> int:
-        return self.int_value
+        return self._int_value

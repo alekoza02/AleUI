@@ -10,8 +10,8 @@ if not DO_NOT_EXECUTE:
 
 
 class Button_push(BaseElementUI):
-    def __init__(self, x, y, w, h, origin=None, title="click me", performant=False, callback=None):
-        super().__init__(x, y, w, h, origin, performant)
+    def __init__(self, x, y, w, h, origin=None, title="click me", callback=None):
+        super().__init__(x, y, w, h, origin)
 
         if callback is None:
             callback = lambda: 1

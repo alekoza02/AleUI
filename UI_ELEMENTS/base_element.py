@@ -74,7 +74,10 @@ class BaseElementUI:
 
 
     def get_parent_local_offset(self):
-        return self.parent_object.give_local_offset()
+        if self.parent_object is None:
+            return self.give_local_offset()
+        else:
+            return self.parent_object.get_parent_local_offset()
 
 
     def give_local_offset(self):

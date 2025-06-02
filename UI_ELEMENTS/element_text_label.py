@@ -194,8 +194,10 @@ class Label_text(BaseElementUI):
 
 
     def analyze_coordinate(self, offset_x=0, offset_y=0) -> None:
+        old_w, old_h = self.w.value, self.h.value
         super().analyze_coordinate(offset_x, offset_y)
-        self.update_text()
+        if old_w != self.w.value or old_h != self.h.value:
+            self.update_text()
 
 
     def launch_tab_action(self):

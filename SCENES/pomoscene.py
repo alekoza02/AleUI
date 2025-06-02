@@ -5,6 +5,7 @@ from UI_ELEMENTS.element_collapse_window import Collapse_Window
 from UI_ELEMENTS.element_entry import Entry
 from UI_ELEMENTS.element_scroll import Scroll
 
+import random
 
 DO_NOT_EXECUTE = False
 if DO_NOT_EXECUTE:
@@ -16,7 +17,8 @@ def build_dev_scene(app: 'App') -> 'App':
     app.UI["interactive_tools"] = Container("10px", "3vh", "4vw", "94vh", None)
     
     app.UI["plot_explorer"] = Container("65vw", "3vh", "35vw -10px", "33vh", None)
-    app.UI["plot_explorer"].add_element("plot_selector", Scroll("50cw", "50ch", "99cw", "99ch", "center-center", title="Plot Explorer"))
+    number_of_elements = int(random.random() * 34) + 1
+    app.UI["plot_explorer"].add_element("plot_selector", Scroll("50cw", "50ch", "95cw", "95ch", "center-center", values=[f"Grafico {i + 1:>4} | points: {random.random() * 10000:.0f}" for i in range(number_of_elements)], values_state=[random.random() < 0.5 for i in range(number_of_elements)], title="Plot Explorer"))
     
     app.UI["settings"] = Container("70vw", "36vh 10px", "30vw -10px", "61vh -10px", None, scrollable=True)
     

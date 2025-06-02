@@ -15,8 +15,8 @@ if DO_NOT_EXECUTE:
     ...
 
 class Container(BaseElementUI):
-    def __init__(self, x, y, w, h, achor=None, scrollable=False):
-        super().__init__(x, y, w, h, achor)
+    def __init__(self, x, y, w, h, anchor=None, scrollable=False):
+        super().__init__(x, y, w, h, anchor)
 
         self.depth_level = 1
         self.bg = (30, 30, 30)
